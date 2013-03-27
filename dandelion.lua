@@ -29,7 +29,7 @@ local function drawLogo()
 	print("/ _` / _` | ' \\/ _` / -_) | / _ \\ ' \\ ")
 	print("\\__,_\\__,_|_||_\\__,_\\___|_|_\\___/_||_|")
 	print("\nCopyright 2013, The LaTeX3 Project")
-	print("All rights reserved.")
+	print("All rights reserved.\n")
 end
 
 -- TODO add header
@@ -44,6 +44,10 @@ local function extractMetadataBlocks(filename)
 	-- happily ever after
 	if fileHandler then
 	
+		-- flag to enable or disable parsing of commented
+		-- lines, according to the context
+		local grabber = false
+	
 		-- read every single line of the provided
 		-- file and look for the test patterns
 		for currentLine in fileHandler:lines() do
@@ -51,10 +55,53 @@ local function extractMetadataBlocks(filename)
 			-- look for the test pattern in the
 			-- source code comments
 			if string.find(currentLine, "^%s*%%%s*!test$") then
+			
+				-- we are now in a potential test metadata block,
+				-- so let's enable the flag
+				grabber = true 
 				
-				-- TODO write preprocessor
-				-- extract all subsequent comment lines until a
-				-- non-comment line appears in the processor
+			-- not a test line, but we can also
+			-- look for test metadata block, if
+			-- the flag is enabled
+			else
+			
+				-- apparently, we are in a test metadata block!
+				if grabber then
+				
+					-- extract all subsequent comment lines until a
+					-- non commented line appears in the processor
+					if string.find(currentLine, "^%s*%%") then
+					
+						-- create a new local variable
+						-- to hold the current entry
+						local entry
+					
+						-- get everything after the comment part
+						entry = string.match(currentLine, '%s*%%(.+)$')
+						
+						-- check if we are handling linebreaks
+						if string.find(entry, "^%%+") then
+						
+							-- special line
+						
+						-- it seems we are handling a
+						-- normal line in here	
+						else
+						
+							-- normal line
+						
+						end
+					
+					-- no commented line, so let's disable
+					-- the block extraction
+					else
+					
+						-- false, false, false
+						grabber = false
+					
+					end
+					
+				end
 				
 			end
 		
@@ -82,6 +129,7 @@ end
 -- Return:      none
 local function main()
 	drawLogo()
+	extractMetadataBlocks("/home/paulo/Documentos/test.tex")
 end
 
 main()
