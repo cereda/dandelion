@@ -32,6 +32,13 @@ local function drawLogo()
 	print("All rights reserved.\n")
 end
 
+-- Description: trim leading and trailing spaces from a string
+-- Parameters:  one string
+-- Return:      the new trimmed string
+local function trim(text)
+  return (string.gsub(text, "^%s*(.-)%s*$", "%1"))
+end
+
 -- TODO add header
 local function extractMetadataBlocks(filename)
 
@@ -47,6 +54,20 @@ local function extractMetadataBlocks(filename)
 		-- flag to enable or disable parsing of commented
 		-- lines, according to the context
 		local grabber = false
+		
+		-- flag to indicate if the current multine parsing
+		-- is valid, of course, you need to have a single
+		-- line argument first
+		local acceptMultine = false
+		
+		-- line counter
+		local lineCounter = 1
+		
+		-- FIXME maybe I don't need these variables
+		-- variables to hold both key and content
+		-- from the metadata
+		local key
+		local content = nil
 	
 		-- read every single line of the provided
 		-- file and look for the test patterns
@@ -77,18 +98,89 @@ local function extractMetadataBlocks(filename)
 						local entry
 					
 						-- get everything after the comment part
-						entry = string.match(currentLine, '%s*%%(.+)$')
+						entry = string.match(currentLine, '^%s*%%(.+)$')
 						
-						-- check if we are handling linebreaks
+						-- check if we are handling multiline values
 						if string.find(entry, "^%%+") then
 						
-							-- special line
+							-- we have a special line here,
+							-- so let's find out what's going
+							-- on in this code
+							
+							-- let's define a new variable
+							-- to set the type of this
+							-- multiline block
+							local type
+							
+							-- perform the matching pattern
+							-- expects something
+							type, entry = string.match(entry, '^(%s*%%+%s)(.*)$')
+							
+							-- if type is nil, we have a malformed
+							-- line not complying with our spec
+							if type == nil then
+							
+								-- alert the user and provide the line
+								-- of the offending code
+								print("I'm sorry, but there's an invalid entry at line " .. lineCounter)
+								print("I require at least one space separating the comment")
+								print("symbol and the content. Stopping execution.")
+								
+								-- kill it with fire!
+								os.exit()
+							
+							end
+							
+							-- so we have a valid type, woohoo!
+							-- Let's trim it for the greater good							
+							type = trim(type)
+							
+							-- we have two types of multiline
+							-- metadata comments:
+							--
+							-- 1: linebreaks are replaced by
+							--    single spaces, named 'docstring'.
+							--
+							-- 2: linebreaks are preserved, with
+							--    the proper line ending, named
+							--    'codestring'
+							
+							local lineEnding
+							
+							-- we have a docstring
+							if #type == 1 then
+							
+								-- add single space
+								lineEnding = " "
+							
+							-- we have a codestring
+							elseif #type == 2 then
+							
+								-- add a linebreak
+								lineEnding = "\n"
+							
+							-- none of the above,
+							-- raise error						
+							else
+							
+								-- print message
+								print("I'm sorry, but there's an invalid entry at line " .. lineCounter)
+								print("The number of extra comment symbols is invalid.")
+								print("Stopping execution.")
+								
+								-- fire at will!
+								os.exit()
+							
+							end
+							
+							-- TODO concatenate content from previous line
 						
 						-- it seems we are handling a
 						-- normal line in here	
 						else
 						
 							-- normal line
+							acceptMultine = true
 						
 						end
 					
@@ -98,12 +190,19 @@ local function extractMetadataBlocks(filename)
 					
 						-- false, false, false
 						grabber = false
+						acceptMultine = false
+						
+						-- FIXME maybe I don't need this variable
+						content = nil
 					
 					end
 					
 				end
 				
 			end
+		
+			-- increment line counter
+			lineCounter = lineCounter + 1
 		
 		end
 	
@@ -129,7 +228,6 @@ end
 -- Return:      none
 local function main()
 	drawLogo()
-	extractMetadataBlocks("/home/paulo/Documentos/test.tex")
 end
 
 main()
