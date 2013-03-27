@@ -32,8 +32,48 @@ local function drawLogo()
 	print("All rights reserved.")
 end
 
--- TODO write this code :)
+-- TODO add header
 local function extractMetadataBlocks(filename)
+
+	-- create a file handler and open the
+	-- file accordingly
+	local fileHandler = io.open(filename,"r")
+	
+	-- if something bad happens, go to the 
+	-- 'else' branch, end script and live
+	-- happily ever after
+	if fileHandler then
+	
+		-- read every single line of the provided
+		-- file and look for the test patterns
+		for currentLine in fileHandler:lines() do
+		
+			-- look for the test pattern in the
+			-- source code comments
+			if string.find(currentLine, "^%s*%%%s*!test$") then
+				
+				-- TODO write preprocessor
+				-- extract all subsequent comment lines until a
+				-- non-comment line appears in the processor
+				
+			end
+		
+		end
+	
+		-- close handler, everything
+		-- went fine
+		fileHandler:close()
+		
+	-- Bad dog, bad dog!
+	else
+	
+		-- print a very polite message
+		print("File '" .. filename .. "' does not exist or is unavailable.")
+		print("Interrupting script, have a nice day.")
+		
+		-- BOOM headshot!
+		os.exit()
+	end
 
 end
 
