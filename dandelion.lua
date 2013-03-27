@@ -1,3 +1,4 @@
+#!/usr/bin/env texlua
 -- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 -- File: dandelion.lua
 -- Copyright (C) 1990-2013 The LaTeX3 Project
@@ -29,6 +30,11 @@ local function drawLogo()
 	print("\\__,_\\__,_|_||_\\__,_\\___|_|_\\___/_||_|")
 	print("\nCopyright 2013, The LaTeX3 Project")
 	print("All rights reserved.")
+end
+
+-- TODO write this code :)
+local function extractMetadataBlocks(filename)
+
 end
 
 -- Description: main function
