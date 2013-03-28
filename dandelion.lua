@@ -212,6 +212,8 @@ local function extractMetadataBlocks(filename)
 							print("Inside the test metadata block, we don't expect")
 							print("commented lines without a proper description,")
 							print("that is, empty comments. Stopping execution.")
+							
+							-- stop, hammertime!
 							os.exit()
 						
 						end
