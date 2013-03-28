@@ -19,6 +19,7 @@
 -- variable that holds the name of all valid elements
 local dandelionElements = { "id",
 							"name",
+							"group",
 							"author",
 							"description",
 							"expects" }
@@ -438,7 +439,7 @@ local function extractMetadataBlocks(filename)
 							-- lalala I can't hear
 							-- you lalala
 							os.exit()
-								
+
 						end
 					
 						-- false, false, false
