@@ -63,11 +63,17 @@ local function extractMetadataBlocks(filename)
 		-- line counter
 		local lineCounter = 1
 		
-		-- FIXME maybe I don't need these variables
-		-- variables to hold both key and content
-		-- from the metadata
+		-- variable to hold the key
+		-- from metadata
 		local key
-		local content = nil
+		
+		-- mapping table
+		local mapping = nil
+		
+		-- flag for an empty value
+		-- for a single entry
+		local emptyValue = false
+		
 	
 		-- read every single line of the provided
 		-- file and look for the test patterns
@@ -77,6 +83,9 @@ local function extractMetadataBlocks(filename)
 			-- source code comments
 			if string.find(currentLine, "^%s*%%%s*!test$") then
 			
+				-- let's reset our mapping table
+				mapping = {}
+							
 				-- we are now in a potential test metadata block,
 				-- so let's enable the flag
 				grabber = true 
@@ -122,7 +131,7 @@ local function extractMetadataBlocks(filename)
 							
 								-- alert the user and provide the line
 								-- of the offending code
-								print("I'm sorry, but there's an invalid entry at line " .. lineCounter)
+								print("I'm sorry, but there's an invalid entry at line " .. lineCounter .. ".")
 								print("I require at least one space separating the comment")
 								print("symbol and the content. Stopping execution.")
 								
@@ -164,7 +173,7 @@ local function extractMetadataBlocks(filename)
 							else
 							
 								-- print message
-								print("I'm sorry, but there's an invalid entry at line " .. lineCounter)
+								print("I'm sorry, but there's an invalid entry at line " .. lineCounter .. ".")
 								print("The number of extra comment symbols is invalid.")
 								print("Stopping execution.")
 								
@@ -173,6 +182,11 @@ local function extractMetadataBlocks(filename)
 							
 							end
 							
+							-- if we are in a multiline environment,
+							-- we expect to fetch values, so let's
+							-- disable the flag
+							emptyValue = false
+							
 							-- TODO concatenate content from previous line
 						
 						-- it seems we are handling a
@@ -180,7 +194,63 @@ local function extractMetadataBlocks(filename)
 						else
 						
 							-- normal line
+							
+							-- check if there was a previous single
+							-- line with an empty value
+							if emptyValue then
+							
+								-- raise error, print message
+								print("I'm sorry, but there's an invalid entry at line " .. (lineCounter - 1) .. ".")
+								print("A key must always be associated to a value.")
+								print("Either set a value or add a multiline comment.")
+								print("Stopping execution.")
+								
+								-- lalala can't hear you lalala
+								os.exit()
+								
+							end
+							
+							-- we can now accept subsequent
+							-- multiline entries
 							acceptMultine = true
+
+							-- let's get both key and the value
+							key, entry = string.match(entry, '^%s*(%w+)%s*:(.*)$')
+							
+							-- a key is required, so if it doesn't comply
+							-- with the pattern, the value will be nil
+							-- and an error will be raised
+							if key == nil then
+							
+								-- print message
+								print("I'm sorry, but there's an invalid entry at line " .. lineCounter .. ".")
+								print("It appears there is no key, or the existing one is")
+								print("invalid. Stopping execution.")
+								
+								-- I like ice cream
+								os.exit()
+								
+							end
+							
+							-- if the current value is not
+							-- empty, set flag to false
+							-- and trim spaces
+							if entry ~= "" then
+								
+								-- set flag to false							
+								emptyValue = false
+								
+								-- trim spaces
+								entry = trim(entry)								
+							
+							-- we have an empty value
+							else
+							
+								-- set flag to true,
+								-- and now we expect
+								-- multiline
+								emptyValue = true
+							end
 						
 						end
 					
@@ -188,12 +258,25 @@ local function extractMetadataBlocks(filename)
 					-- the block extraction
 					else
 					
+						-- check if there was a previous single
+						-- line with an empty value
+						if emptyValue then
+							
+							-- raise error, print message
+							print("I'm sorry, but there's an invalid entry at line " .. (lineCounter - 1) .. ".")
+							print("A key must always be associated to a value.")
+							print("Either set a value or add a multiline comment.")
+							print("Stopping execution.")
+								
+							-- lalala I can't hear
+							-- you lalala
+							os.exit()
+								
+						end
+					
 						-- false, false, false
 						grabber = false
 						acceptMultine = false
-						
-						-- FIXME maybe I don't need this variable
-						content = nil
 					
 					end
 					
