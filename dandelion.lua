@@ -16,6 +16,13 @@
 -- The released version of this bundle is available from CTAN.
 -- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+-- variable that holds the name of all valid elements
+local dandelionElements = { "id",
+							"name",
+							"author",
+							"description",
+							"expects" }
+
 -- Description: draw logo in the terminal
 -- Parameters:  none
 -- Return:      none
@@ -37,6 +44,64 @@ end
 -- Return:      the new trimmed string
 local function trim(text)
   return (string.gsub(text, "^%s*(.-)%s*$", "%1"))
+end
+
+-- Description: trim leading and trailing newlines.
+-- Parameters:  one string
+-- Return:      the new trimmed string
+local function trimNewline(text)
+  return (string.gsub(text, "^\n*(.-)\n*$", "%1"))
+end
+
+-- Description: check if an element is in a table
+-- Parameters:  the element and the table
+-- Return:      a boolean value indicating if the
+--              element is present
+local function contains(a, t)
+
+	-- for every element in the table
+	for _, element in ipairs(t) do
+
+		-- the element exists,
+		-- return true
+		if a == element then
+			return true
+		end
+	end
+	
+	-- nothing was found
+	return false
+end
+
+-- Description: compute the set difference between two tables
+-- Parameters:  two tables
+-- Return:      a new table containing the difference
+local function difference(tableOne, tableTwo)
+
+	-- temporary variable
+	local tableThree = {}
+	
+	-- iterate through all elements in table 1
+	for _, element in ipairs(tableOne) do
+	
+		-- for every element a from table 1 not
+		-- in table 2, insert it into table 3
+		if not contains(element, tableTwo) then
+			table.insert(tableThree, element)
+		end
+	end
+	
+	-- return the difference between
+	-- table 1 and 2
+	return tableThree
+end
+
+-- Description: check if the key is valid
+-- Parameters:  one string
+-- Return:      a boolean value indicating if the
+--              provided key is valid
+local function validKey(element)
+	return contains(element, dandelionElements)
 end
 
 -- TODO add header
@@ -69,6 +134,12 @@ local function extractMetadataBlocks(filename)
 		
 		-- mapping table
 		local mapping = nil
+		
+		-- full mappings table
+		local mappings = {}
+		
+		-- index for the mappings table
+		local mappingIndex = 1
 		
 		-- flag for an empty value
 		-- for a single entry
@@ -109,12 +180,43 @@ local function extractMetadataBlocks(filename)
 						-- get everything after the comment part
 						entry = string.match(currentLine, '^%s*%%(.+)$')
 						
+						-- if we have a nil value, this is not
+						-- good! The test metadata block requires
+						-- no empty comment lines.
+						if entry == nil then
+						
+							-- message
+							print("I'm sorry, but there's an invalid entry at line " .. lineCounter .. ".")
+							print("Inside the test metadata block, we don't expect")
+							print("commented lines without a proper description,")
+							print("that is, empty comments. Stopping execution.")
+							os.exit()
+						
+						end
+						
 						-- check if we are handling multiline values
 						if string.find(entry, "^%%+") then
 						
 							-- we have a special line here,
 							-- so let's find out what's going
 							-- on in this code
+							
+							-- let's see if the scope is valid, that
+							-- is, we need to have a previous line
+							-- with a key
+							if acceptMultine == false then
+							
+								-- print message
+								print("I'm sorry, but there's an invalid entry at line " .. lineCounter .. ".")
+								print("You can't have a multiline entry without a previous")
+								print("single entry with the proper key. Stopping execution.")
+								
+								-- spam, spam, spam, spam,
+								-- lovely spam, wonderful
+								-- spam!
+								os.exit()
+							
+							end
 							
 							-- let's define a new variable
 							-- to set the type of this
@@ -187,8 +289,12 @@ local function extractMetadataBlocks(filename)
 							-- disable the flag
 							emptyValue = false
 							
-							-- TODO concatenate content from previous line
-						
+							-- let's concatenate the values from the previous
+							-- lines, since we are in a multiline segment
+							entry = mapping[key] .. lineEnding .. entry
+							mapping[key] = trimNewline(entry)
+							mappings[mappingIndex] = mapping
+													
 						-- it seems we are handling a
 						-- normal line in here	
 						else
@@ -232,6 +338,22 @@ local function extractMetadataBlocks(filename)
 								
 							end
 							
+							-- we need to ensure we have a
+							-- valid key, otherwise stop
+							-- the press!
+							if not validKey(key) then
+							
+								-- print message
+								print("I'm sorry, but there's an invalid entry at line " .. lineCounter .. ".")
+								print("It appears the '" .. key .. "' is invalid. Please")
+								print("fix it before proceeding. Stopping execution.")
+								
+								-- can't read ma, can't read ma,
+								-- no you can't read ma poker face!
+								os.exit()
+							
+							end
+							
 							-- if the current value is not
 							-- empty, set flag to false
 							-- and trim spaces
@@ -251,6 +373,12 @@ local function extractMetadataBlocks(filename)
 								-- multiline
 								emptyValue = true
 							end
+							
+							-- key is already trimmed because
+							-- of the matching pattern, so let's
+							-- simply add things here
+							mapping[key] = entry
+							mappings[mappingIndex] = mapping
 						
 						end
 					
@@ -278,6 +406,9 @@ local function extractMetadataBlocks(filename)
 						grabber = false
 						acceptMultine = false
 					
+						-- increment mapping index
+						mappingIndex = mappingIndex + 1
+					
 					end
 					
 				end
@@ -293,6 +424,61 @@ local function extractMetadataBlocks(filename)
 		-- went fine
 		fileHandler:close()
 		
+		-- now, let's do some sanity check in order to
+		-- ensure our table of mappings is correct
+		
+		-- list of test id's,
+		-- empty at first
+		local idList = {}
+		
+		-- now let's browse our mappings table
+		-- looking for all tests we found
+		for _, v in ipairs(mappings) do
+		
+			-- our temporary table to hold the
+			-- current test keys
+			local keys = {}
+			
+			-- for every key in the current
+			-- test spec, add it to the list
+			for j, _ in pairs(v) do
+				table.insert(keys, j)				
+			end
+			
+			-- if we have missing elements, the
+			-- execution has to stop
+			if #difference(dandelionElements, keys) ~= 0 then
+			
+				-- print message
+				print("I'm sorry, but there are some elements missing from one")
+				print("of your tests. Please make sure the test spec has all the")
+				print("required elements. Stopping execution.")
+			
+				-- pew, pew, pew!
+				os.exit()
+			
+			end
+			
+			-- if the current test id is already defined,
+			-- an error has to be raised!
+			if contains(v["id"], idList) then
+			
+				-- print message
+				print("I'm sorry, but the test ID '" .. v["id"] .. "' is already defined")
+				print("in your file. Please rename it. Stopping execution.")
+			
+				-- to exit or not to exit,
+				-- that's the question
+				os.exit()
+				
+			-- new id, let's add it to the list of
+			-- test id's
+			else
+				table.insert(idList, v["id"])
+			end
+			
+		end
+				
 	-- Bad dog, bad dog!
 	else
 	
