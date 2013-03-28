@@ -43,14 +43,36 @@ end
 -- Parameters:  one string
 -- Return:      the new trimmed string
 local function trim(text)
-  return (string.gsub(text, "^%s*(.-)%s*$", "%1"))
+	return (string.gsub(text, "^%s*(.-)%s*$", "%1"))
 end
 
 -- Description: trim leading and trailing newlines.
 -- Parameters:  one string
 -- Return:      the new trimmed string
 local function trimNewline(text)
-  return (string.gsub(text, "^\n*(.-)\n*$", "%1"))
+	return (string.gsub(text, "^\n*(.-)\n*$", "%1"))
+end
+
+-- Description: check if the table has valid entries
+local function validEntries(t)
+
+	-- iterate through all elements
+	for i, v in pairs(t) do
+	
+		-- the 'expects' key is relaxed on empty values,
+		-- so let's ignore it
+		if i ~= "expects" then
+		
+			-- if the values are empty,
+			-- return false
+			if trim(v) == "" then
+				return false
+			end		
+		end
+	end
+	
+	-- everything is okay
+	return true
 end
 
 -- Description: check if an element is in a table
@@ -292,7 +314,22 @@ local function extractMetadataBlocks(filename)
 							-- let's concatenate the values from the previous
 							-- lines, since we are in a multiline segment
 							entry = mapping[key] .. lineEnding .. entry
-							mapping[key] = trimNewline(entry)
+							
+							-- if docstring, simply trim
+							-- the leading and trailing
+							-- spaces
+							if #type == 1 then
+								entry = trim(entry)
+								
+							-- we have a codestring, then
+							-- let's trim the leading and
+							-- trailing newlines
+							else
+								entry = trimNewline(entry)
+							end
+							
+							-- add entry to the mappings
+							mapping[key] = entry 
 							mappings[mappingIndex] = mapping
 													
 						-- it seems we are handling a
@@ -389,7 +426,7 @@ local function extractMetadataBlocks(filename)
 						-- check if there was a previous single
 						-- line with an empty value
 						if emptyValue then
-							
+
 							-- raise error, print message
 							print("I'm sorry, but there's an invalid entry at line " .. (lineCounter - 1) .. ".")
 							print("A key must always be associated to a value.")
@@ -459,6 +496,20 @@ local function extractMetadataBlocks(filename)
 			
 			end
 			
+			-- now let's search for invalid
+			-- entries, that is, empty values
+			if not validEntries(v) then
+			
+				-- print message
+				print("I'm sorry, but there are some elements with empty values.")
+				print("Please make sure the test spec has all the required elements")
+				print("and their corresponding values. Stopping execution.")
+				
+				-- set fire to the rain!
+				os.exit()
+				
+			end
+			
 			-- if the current test id is already defined,
 			-- an error has to be raised!
 			if contains(v["id"], idList) then
@@ -478,7 +529,7 @@ local function extractMetadataBlocks(filename)
 			end
 			
 		end
-				
+							
 	-- Bad dog, bad dog!
 	else
 	
