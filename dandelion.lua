@@ -1,5 +1,5 @@
 #!/usr/bin/env texlua
--- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+-- ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 -- File: dandelion.lua
 -- Copyright (C) 2013 The LaTeX3 Project
 --
@@ -14,7 +14,7 @@
 -- and all files in that bundle must be distributed together.
 --
 -- The released version of this bundle is available from CTAN.
--- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+-- ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 -- variable that holds the name of all valid elements
 local dandelionElements = { "id",
@@ -241,10 +241,10 @@ local function extractMetadataBlocks(filename)
                         if entry == nil then
 
                             -- message
-                            print("I'm sorry, but there's an invalid entry at line " .. lineCounter .. ".")
-                            print("Inside the test metadata block, we don't expect")
-                            print("commented lines without a proper description,")
-                            print("that is, empty comments. Stopping execution.")
+                            print(":: I'm sorry, but there's an invalid entry at line " .. lineCounter .. ".")
+                            print(":: Inside the test metadata block, we don't expect")
+                            print(":: commented lines without a proper description,")
+                            print(":: that is, empty comments. Stopping execution.")
 
                             -- close the handler, we
                             -- are about to explode
@@ -268,9 +268,9 @@ local function extractMetadataBlocks(filename)
                             if acceptMultine == false then
 
                                 -- print message
-                                print("I'm sorry, but there's an invalid entry at line " .. lineCounter .. ".")
-                                print("You can't have a multiline entry without a previous")
-                                print("single entry with the proper key. Stopping execution.")
+                                print(":: I'm sorry, but there's an invalid entry at line " .. lineCounter .. ".")
+                                print(":: You can't have a multiline entry without a previous")
+                                print(":: single entry with the proper key. Stopping execution.")
 
                                 -- close the handler, we
                                 -- are about to explode
@@ -298,9 +298,9 @@ local function extractMetadataBlocks(filename)
 
                                 -- alert the user and provide the line
                                 -- of the offending code
-                                print("I'm sorry, but there's an invalid entry at line " .. lineCounter .. ".")
-                                print("I require at least one space separating the comment")
-                                print("symbol and the content. Stopping execution.")
+                                print(":: I'm sorry, but there's an invalid entry at line " .. lineCounter .. ".")
+                                print(":: I require at least one space separating the comment")
+                                print(":: symbol and the content. Stopping execution.")
                                 
                                 -- close the handler, we
                                 -- are about to explode
@@ -344,9 +344,9 @@ local function extractMetadataBlocks(filename)
                             else
 
                                 -- print message
-                                print("I'm sorry, but there's an invalid entry at line " .. lineCounter .. ".")
-                                print("The number of extra comment symbols is invalid.")
-                                print("Stopping execution.")
+                                print(":: I'm sorry, but there's an invalid entry at line " .. lineCounter .. ".")
+                                print(":: The number of extra comment symbols is invalid.")
+                                print(":: Stopping execution.")
                                 
                                 -- close the handler, we
                                 -- are about to explode
@@ -394,10 +394,10 @@ local function extractMetadataBlocks(filename)
                             if emptyValue then
 
                                 -- raise error, print message
-                                print("I'm sorry, but there's an invalid entry at line " .. (lineCounter - 1) .. ".")
-                                print("A key must always be associated to a value.")
-                                print("Either set a value or add a multiline comment.")
-                                print("Stopping execution.")
+                                print(":: I'm sorry, but there's an invalid entry at line " .. (lineCounter - 1) .. ".")
+                                print(":: A key must always be associated to a value.")
+                                print(":: Either set a value or add a multiline comment.")
+                                print(":: Stopping execution.")
                                 
                                 -- close the handler, we
                                 -- are about to explode
@@ -422,9 +422,9 @@ local function extractMetadataBlocks(filename)
                             if key == nil then
 
                                 -- print message
-                                print("I'm sorry, but there's an invalid entry at line " .. lineCounter .. ".")
-                                print("It appears there is no key, or the existing one is")
-                                print("invalid. Stopping execution.")
+                                print(":: I'm sorry, but there's an invalid entry at line " .. lineCounter .. ".")
+                                print(":: It appears there is no key, or the existing one is")
+                                print(":: invalid. Stopping execution.")
                                 
                                 -- close the handler, we
                                 -- are about to explode
@@ -441,9 +441,9 @@ local function extractMetadataBlocks(filename)
                             if not validKey(key) then
 
                                 -- print message
-                                print("I'm sorry, but there's an invalid entry at line " .. lineCounter .. ".")
-                                print("It appears the '" .. key .. "' is invalid. Please")
-                                print("fix it before proceeding. Stopping execution.")
+                                print(":: I'm sorry, but there's an invalid entry at line " .. lineCounter .. ".")
+                                print(":: It appears the '" .. key .. "' is invalid. Please")
+                                print(":: fix it before proceeding. Stopping execution.")
                                 
                                 -- close the handler, we
                                 -- are about to explode
@@ -492,10 +492,10 @@ local function extractMetadataBlocks(filename)
                         if emptyValue then
 
                             -- raise error, print message
-                            print("I'm sorry, but there's an invalid entry at line " .. (lineCounter - 1) .. ".")
-                            print("A key must always be associated to a value.")
-                            print("Either set a value or add a multiline comment.")
-                            print("Stopping execution.")
+                            print(":: I'm sorry, but there's an invalid entry at line " .. (lineCounter - 1) .. ".")
+                            print(":: A key must always be associated to a value.")
+                            print(":: Either set a value or add a multiline comment.")
+                            print(":: Stopping execution.")
                             
                             -- close the handler, we
                             -- are about to explode
@@ -527,9 +527,9 @@ local function extractMetadataBlocks(filename)
                     if engine ~= nil then
                     
                         -- print message
-                        print("I'm sorry, but there's an invalid entry at line " .. (lineCounter - 1) .. ".")
-                        print("The engine is already defined in the scope of this file.")
-                        print("Stopping execution.")
+                        print(":: I'm sorry, but there's an invalid entry at line " .. (lineCounter - 1) .. ".")
+                        print(":: The engine is already defined in the scope of this file.")
+                        print(":: Stopping execution.")
                         
                         -- close the handler, we
                         -- are about to explode
@@ -557,6 +557,20 @@ local function extractMetadataBlocks(filename)
         -- close handler, everything
         -- went fine
         fileHandler:close()
+        
+        -- we need to ensure an engine was
+        -- defined in our file
+        if engine == nil then
+        
+            -- print message
+            print(":: I'm sorry, but there's no TeX engine defined in the scope")
+            print(":: of this file. I cannot proceed. Stopping execution.")
+
+            -- I wanted to be
+            -- a lumberjack!
+            os.exit()
+        
+        end
 
         -- now, let's do some sanity check in order to
         -- ensure our table of mappings is correct
@@ -584,9 +598,8 @@ local function extractMetadataBlocks(filename)
             if #difference(dandelionElements, keys) ~= 0 then
 
                 -- print message
-                print("I'm sorry, but there are some elements missing from one")
-                print("of your tests. Please make sure the test spec has all the")
-                print("required elements. Stopping execution.")
+                print(":: I'm sorry, but there are some elements missing from one")
+                print(":: of your tests. Please make sure the test spec has all the")
 
                 -- pew, pew, pew!
                 os.exit()
@@ -598,9 +611,9 @@ local function extractMetadataBlocks(filename)
             if not validEntries(v) then
 
                 -- print message
-                print("I'm sorry, but there are some elements with empty values.")
-                print("Please make sure the test spec has all the required elements")
-                print("and their corresponding values. Stopping execution.")
+                print(":: I'm sorry, but there are some elements with empty values.")
+                print(":: Please make sure the test spec has all the required elements")
+                print(":: and their corresponding values. Stopping execution.")
 
                 -- set fire to the rain!
                 os.exit()
@@ -612,8 +625,8 @@ local function extractMetadataBlocks(filename)
             if contains(v["id"], idList) then
 
                 -- print message
-                print("I'm sorry, but the test ID '" .. v["id"] .. "' is already defined")
-                print("in your file. Please rename it. Stopping execution.")
+                print(":: I'm sorry, but the test ID '" .. v["id"] .. "' is already defined")
+                print(":: in your file. Please rename it. Stopping execution.")
 
                 -- to exit or not to exit,
                 -- that's the question
@@ -624,17 +637,17 @@ local function extractMetadataBlocks(filename)
             else
                 table.insert(idList, v["id"])
             end
-            
-            -- TODO add return statement
 
         end
-
+        
+        -- TODO add return statement
+                
     -- Bad dog, bad dog!
     else
 
-        -- print a very polite message
-        print("File '" .. filename .. "' does not exist or is unavailable.")
-        print("Interrupting script, have a nice day.")
+        -- print message
+        print(":: File '" .. filename .. "' does not exist or is unavailable.")
+        print(":: Stopping execution.")
 
         -- BOOM headshot!
         os.exit()
@@ -732,9 +745,9 @@ local function extractOutputBlocks(filename)
                 if testName == nil then
                 
                     -- show message
-                    print("I'm sorry, but there's an invalid test output block at line " .. (lineCounter - 1) .. ".")
-                    print("The test output block requires a valid name, otherwise we cannot")
-                    print("proceed with the analysis. Stopping execution.")
+                    print(":: I'm sorry, but there's an invalid test output block at line " .. (lineCounter - 1) .. ".")
+                    print(":: The test output block requires a valid name, otherwise we cannot")
+                    print(":: proceed with the analysis. Stopping execution.")
                     
                     -- close the handler, we
                     -- are about to explode
@@ -750,8 +763,8 @@ local function extractOutputBlocks(filename)
                 if contains(testName, idList) then
             
                     -- print message
-                    print("I'm sorry, but the test ID '" .. testName .. "' is already defined")
-                    print("in your log file. Stopping execution.")
+                    print(":: I'm sorry, but the test ID '" .. testName .. "' is already defined")
+                    print(":: in your log file. Stopping execution.")
                 
                     -- close the handler, we
                     -- are about to explode
@@ -786,9 +799,9 @@ local function extractOutputBlocks(filename)
                 if name == nil then
                 
                     -- show message
-                    print("I'm sorry, but there's an invalid test output block at line " .. (lineCounter - 1) .. ".")
-                    print("The test output block requires a valid name, otherwise we cannot")
-                    print("proceed with the analysis. Stopping execution.")
+                    print(":: I'm sorry, but there's an invalid test output block at line " .. (lineCounter - 1) .. ".")
+                    print(":: The test output block requires a valid name, otherwise we cannot")
+                    print(":: proceed with the analysis. Stopping execution.")
                     
                     -- close the handler, we
                     -- are about to explode
@@ -804,9 +817,9 @@ local function extractOutputBlocks(filename)
                 if name ~= testName then
                 
                     -- show message
-                    print("I'm sorry, but there's an invalid test output block at line " .. (lineCounter - 1) .. ".")
-                    print("The test block closing markup has a different name identifier than")
-                    print("its opening counterpart. Stopping execution.")
+                    print(":: I'm sorry, but there's an invalid test output block at line " .. (lineCounter - 1) .. ".")
+                    print(":: The test block closing markup has a different name identifier than")
+                    print(":: its opening counterpart. Stopping execution.")
                     
                     -- close the handler, we
                     -- are about to explode
@@ -853,9 +866,9 @@ local function extractOutputBlocks(filename)
     -- Bad dog, bad dog!
     else
 
-        -- print a very polite message
-        print("File '" .. filename .. "' does not exist or is unavailable.")
-        print("Interrupting script, have a nice day.")
+        -- print message
+        print(":: File '" .. filename .. "' does not exist or is unavailable.")
+        print(":: Stopping execution.")
 
         -- 99 bottles of beer
         -- in the wall...
@@ -869,6 +882,7 @@ end
 -- wrapping the main code into a block.
 local function main()
     drawLogo()
+    extractMetadataBlocks("/home/paulo/Documentos/test.tex")
 end
 
 main()
