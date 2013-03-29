@@ -1,7 +1,7 @@
 #!/usr/bin/env texlua
 -- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 -- File: dandelion.lua
--- Copyright (C) 1990-2013 The LaTeX3 Project
+-- Copyright (C) 2013 The LaTeX3 Project
 --
 -- It may be distributed and/or modified under the conditions of the
 -- LaTeX Project Public License (LPPL), either version 1.3c of this
