@@ -24,12 +24,11 @@ local dandelionElements = { "id",
 							"description",
 							"expects" }
 
--- Description: draw logo in the terminal
--- Parameters:  none
--- Return:      none
---
--- Joseph told me I should put my name in there, but it's too
--- risky: people will come after me when code starts to fail
+--- Draws the application logo in the terminal.
+-- This function simply draws an ASCII logo in the terminal.
+-- Joseph told me I should put my name in the copyright line
+-- together with the LaTeX3 project, but it's too risky:
+-- people will come after me when code starts to fail
 -- miserably! :)
 local function drawLogo()
 	print("    _              _     _ _")         
@@ -40,21 +39,32 @@ local function drawLogo()
 	print("All rights reserved.\n")
 end
 
--- Description: trim leading and trailing spaces from a string
--- Parameters:  one string
--- Return:      the new trimmed string
+--- Trims leading and trailing spaces from a string.
+-- This function removes leading and trailing spaces
+-- from the provided string, using pattern matching.
+-- @param text The text to be trimmed.
+-- @return The new trimmed string.
 local function trim(text)
 	return (string.gsub(text, "^%s*(.-)%s*$", "%1"))
 end
 
--- Description: trim leading and trailing newlines.
--- Parameters:  one string
--- Return:      the new trimmed string
+--- Trims leading and trailing newlines.
+-- This function removes leading and trailing newline
+-- characters from the provided string, using pattern
+-- matching.
+-- @param text The string to be trimmed.
+-- @return The new trimmed string.
 local function trimNewline(text)
 	return (string.gsub(text, "^\n*(.-)\n*$", "%1"))
 end
 
--- Description: check if the table has valid entries
+--- Checks if the table has valid entries.
+-- This function checks every key value looking for
+-- empty definitions, which might cause trouble
+-- later on in the execution.
+-- @param t The table.
+-- @return A boolean indicating if the table has
+--         valid entries.
 local function validEntries(t)
 
 	-- iterate through all elements
@@ -76,10 +86,13 @@ local function validEntries(t)
 	return true
 end
 
--- Description: check if an element is in a table
--- Parameters:  the element and the table
--- Return:      a boolean value indicating if the
---              element is present
+--- Checks if the element is in the provided table.
+-- This function checks if the element is in the
+-- provided table, return a boolean value accordingly.
+-- @param a The element to be checked.
+-- @param t The table.
+-- @return boolean value indicating if the element
+--         is present.
 local function contains(a, t)
 
 	-- for every element in the table
@@ -96,9 +109,12 @@ local function contains(a, t)
 	return false
 end
 
--- Description: compute the set difference between two tables
--- Parameters:  two tables
--- Return:      a new table containing the difference
+--- Computes the set difference between two tables.
+-- This function computes the set difference between
+-- the two provided tables.
+-- @param tableOne First table.
+-- @param tableTwo Second table.
+-- @return A new table containing the difference.
 local function difference(tableOne, tableTwo)
 
 	-- temporary variable
@@ -546,9 +562,9 @@ local function extractMetadataBlocks(filename)
 
 end
 
--- Description: main function
--- Parameters:  none
--- Return:      none
+--- Wraps the main code into a block.
+-- This function acts like the main function of the program,
+-- wrapping the main code into a block.
 local function main()
 	drawLogo()
 end
