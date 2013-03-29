@@ -157,7 +157,7 @@ end
 -- according to the defined markup.
 -- @param filename The source code filename.
 -- @return A table containing all tests found in the source code.
-local function extractMetadataBlocks(filename)
+local function extractDataFromSource(filename)
 
     -- create a file handler and open the
     -- file accordingly
@@ -700,7 +700,7 @@ end
 -- @param filename The log filename.
 -- @return A table containing all the output blocks with their
 --         corresponding identifiers.
-local function extractOutputBlocks(filename)
+local function extractDataFromLog(filename)
 
     -- create a file handler and open the
     -- file accordingly
