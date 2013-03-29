@@ -196,7 +196,10 @@ local function extractMetadataBlocks(filename)
         -- flag for an empty value
         -- for a single entry
         local emptyValue = false
-
+        
+        -- we need an engine,
+        -- don't we?
+        local engine = nil
 
         -- read every single line of the provided
         -- file and look for the test patterns
@@ -400,7 +403,8 @@ local function extractMetadataBlocks(filename)
                                 -- are about to explode
                                 fileHandler:close()
 
-                                -- lalala can't hear you lalala
+                                -- lalala can't hear
+                                -- you lalala
                                 os.exit()
 
                             end
@@ -497,8 +501,8 @@ local function extractMetadataBlocks(filename)
                             -- are about to explode
                             fileHandler:close()
 
-                            -- lalala I can't hear
-                            -- you lalala
+                            -- walking in a winter
+                            -- wonderland
                             os.exit()
 
                         end
@@ -512,6 +516,35 @@ local function extractMetadataBlocks(filename)
 
                     end
 
+                end
+                
+                -- let's try to get the engine 
+                if string.find(currentLine, "^%s*%%%s*!dandelion%s(%w+)$") then
+                    
+                    
+                    -- we already have an engine,
+                    -- raise error
+                    if engine ~= nil then
+                    
+                        -- print message
+                        print("I'm sorry, but there's an invalid entry at line " .. (lineCounter - 1) .. ".")
+                        print("The engine is already defined in the scope of this file.")
+                        print("Stopping execution.")
+                        
+                        -- close the handler, we
+                        -- are about to explode
+                        fileHandler:close()
+    
+                        -- the more I see,
+                        -- the less I know
+                        os.exit()
+                    
+                    end
+                    
+                    -- get the engine
+                    engine = string.match(currentLine, '^%s*%%%s*!dandelion%s(%w+)$')
+                    engine = trim(engine)
+                        
                 end
 
             end
@@ -816,9 +849,6 @@ local function extractOutputBlocks(filename)
         fileHandler:close()
         
         -- TODO add return statement
-        for i, v in pairs(results) do
-            print(i, "'" .. v .. "'")
-        end                 
     
     -- Bad dog, bad dog!
     else
