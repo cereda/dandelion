@@ -24,6 +24,15 @@ local dandelionElements = { "id",
     "description",
     "expects" }
 
+-- variable that holds the name of all registers
+-- that require parsing in the log output
+local dandelionRegisters = { "box",
+    "count",
+    "dimen",
+    "muskip",
+    "skip",
+    "toks" }
+
 --- Draws the application logo in the terminal.
 -- This function simply draws an ASCII logo in the terminal.
 -- Joseph told me I should put my name in the copyright line
@@ -600,6 +609,45 @@ local function extractMetadataBlocks(filename)
 
 end
 
+--- Removes the line number reference from the log output.
+-- This functions removes the line number reference from the log output,
+-- easing the analysis.
+-- @param text The text to be parsed.
+local function removeLineNumberReference(text)
+
+    -- good old pattern matching, looks for ' on line <digits>'
+    -- and replace the occurrences by the correct form
+    return string.gsub(text, "%son%sline%s(%d+)", " on line ...")
+end
+
+--- Removes the register reference.
+-- This function removes the register reference, that is, the number that
+-- follows the registry entry.
+-- @param register The register name.
+-- @param text The text to be parsed.
+local function removeRegisterReference(register, text)
+    return string.gsub(text, "\\" .. register .. "(%d+)", "\\" .. register .. "...")
+end
+
+--- Removes the references from a list of register names.
+-- This function removes the references from a list of register names,
+-- since Lua's pattern matching acts quite differently from traditional
+-- regex approaches.
+-- @param registers A table containing all the register names.
+-- @param text The text to be parsed.
+local function removeRegisterReferences(registers, text)
+
+    -- for every entry in the registers table
+    for _, i in ipairs(registers) do
+    
+        -- parse the text
+        text = removeRegisterReference(i, text)
+    end
+    
+    -- return the new text
+    return text
+end
+
 --- Extracts the output blocks from the provided log file.
 -- This function extracts the output blocks from the provided log files,
 -- according to the defined markup.
@@ -744,9 +792,17 @@ local function extractOutputBlocks(filename)
             -- test output block            
             elseif grabber then
             
-                -- add current line to the table
+                -- get the current status of the output
                 local entry = results[testName]
-                results[testName] = trimNewline(entry .. "\n" .. currentLine)
+                
+                -- remove the line number reference
+                local parsedLine = removeLineNumberReference(currentLine)
+                
+                -- remove register references
+                parsedLine = removeRegisterReferences(dandelionRegisters, parsedLine)
+                
+                -- update the output data in the table
+                results[testName] = trimNewline(entry .. "\n" .. parsedLine)
             
             end
                     
@@ -759,7 +815,10 @@ local function extractOutputBlocks(filename)
         -- went fine
         fileHandler:close()
         
-        -- TODO add return statement                 
+        -- TODO add return statement
+        for i, v in pairs(results) do
+            print(i, "'" .. v .. "'")
+        end                 
     
     -- Bad dog, bad dog!
     else
