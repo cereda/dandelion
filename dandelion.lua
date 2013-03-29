@@ -882,7 +882,6 @@ end
 -- wrapping the main code into a block.
 local function main()
     drawLogo()
-    extractMetadataBlocks("/home/paulo/Documentos/test.tex")
 end
 
 main()
