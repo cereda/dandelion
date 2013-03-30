@@ -825,7 +825,9 @@ local function extractDataFromLog(filename)
                     -- are about to explode
                     fileHandler:close()
                     
-                    -- Luke, use the source
+                    -- The Final Countdown song
+                    -- is now playing inside
+                    -- your head
                     os.exit()
                 
                 end
