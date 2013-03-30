@@ -883,7 +883,13 @@ end
 -- This function acts like the main function of the program,
 -- wrapping the main code into a block.
 local function main()
+
+    -- first of all, draw
+    -- the program logo
     drawLogo()
+
 end
 
+-- call the main
+-- function
 main()
