@@ -161,7 +161,7 @@ local function extractDataFromSource(filename)
 
     -- create a file handler and open the
     -- file accordingly
-    local fileHandler = io.open(filename,"r")
+    local fileHandler = io.open(filename, "r")
 
     -- if something bad happens, go to the
     -- 'else' branch, end script and live
@@ -704,7 +704,7 @@ local function extractDataFromLog(filename)
 
     -- create a file handler and open the
     -- file accordingly
-    local fileHandler = io.open(filename,"r")
+    local fileHandler = io.open(filename, "r")
 
     -- if something bad happens, go to the
     -- 'else' branch, end script and live
@@ -863,7 +863,9 @@ local function extractDataFromLog(filename)
         -- went fine
         fileHandler:close()
         
-        -- TODO add return statement
+        -- return all test output
+        -- blocks found
+        return results
     
     -- Bad dog, bad dog!
     else
@@ -894,7 +896,7 @@ local function parseCommandLine(arguments)
     -- our program will support
     local flags = { "--help" , "--version" }
     local modifiers = { "--id", "--author", "--group" }
-    local actions = { "test" , "list" }
+    local actions = { "test" , "list", "save" }
     
     -- get the number of arguments
     -- passed to the program
@@ -1082,6 +1084,104 @@ local function parseCommandLine(arguments)
         
     end
 
+end
+
+--- Gets the last occurrence of a string in the text.
+-- This function gets the last occurrence of the provided string in the text.
+-- If the string is not found, the first position is returned.
+-- @param text The text to be analyzed.
+-- @param lookup The lookup string.
+-- @return The last occurrence of the string, if found, or the first
+--         position otherwise.
+local function getLastOccurrence(text, lookup)
+    
+    -- variables
+    local offset = 0
+    local lastOccurrence
+    local position = 1
+
+    -- let's repeat the lookup until
+    -- no more occurrences are found
+    repeat
+        
+        -- update values
+        lastOccurrence = position
+        offset = lastOccurrence
+        
+        -- search the remaining text
+        position = string.find(text, lookup, offset + 1, true)
+
+    until position == nil
+    
+    -- return the index
+    return lastOccurrence
+
+end
+
+--- Gets the basename of the provided file.
+-- This function returns the basename of the provided file.
+-- @param filename The filename.
+-- @return The basename of the file.
+local function getBasename(filename)
+
+    -- get the last occurrence of the dot character,
+    -- where we expect to be the extension part
+    local position = getLastOccurrence(filename, ".")
+    
+    -- return everything before that position
+    return string.sub(filename, 1, position - 1)
+    
+end
+
+--- Generates the reference log file.
+-- This function generates the reference log file from the content
+-- of the original log file, already extracted and parsed. The program
+-- will attempt to save the new file in same place of the original log
+-- file.
+-- @param filename The name of the original log file.
+-- @param content The content of the original file name, already extracted
+--        and parsed.
+local function generateReferenceLog(filename, content)
+
+    -- let's get the basename and add the
+    -- '.tlg' reference log extension
+    filename = getBasename(filename) .. ".tlg"
+    
+    -- create a new file handler, opening
+    -- the file for writing
+    local fileHandler = io.open(filename, "w")
+    
+    -- if the file handler is valid
+    if fileHandler then
+    
+        -- for every entry in the
+        -- content table
+        for i, v in pairs(content) do
+        
+            -- write the test output block
+            fileHandler:write("===== begin:test:" .. i .. "\n")
+            fileHandler:write(v .. "\n")
+            fileHandler:write("===== end:test:" .. i .. "\n")
+            
+        end
+    
+    -- close handler
+    fileHandler:close()
+    
+    -- TODO add success message
+    
+    -- something bad happened
+    else
+    
+        -- print message
+        -- TODO add error message about the reference log generation
+        
+        -- do you come from a
+        -- land down under?
+        os.exit(1)
+        
+    end
+    
 end
 
 --- Wraps the main code into a block.
