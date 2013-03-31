@@ -251,7 +251,7 @@ local function extractDataFromSource(filename)
                             fileHandler:close()
 
                             -- stop, hammertime!
-                            os.exit()
+                            os.exit(1)
 
                         end
 
@@ -279,7 +279,7 @@ local function extractDataFromSource(filename)
                                 -- spam, spam, spam, spam,
                                 -- lovely spam, wonderful
                                 -- spam!
-                                os.exit()
+                                os.exit(1)
 
                             end
 
@@ -307,7 +307,7 @@ local function extractDataFromSource(filename)
                                 fileHandler:close()
 
                                 -- kill it with fire!
-                                os.exit()
+                                os.exit(1)
 
                             end
 
@@ -353,7 +353,7 @@ local function extractDataFromSource(filename)
                                 fileHandler:close()
 
                                 -- fire at will!
-                                os.exit()
+                                os.exit(1)
 
                             end
 
@@ -405,7 +405,7 @@ local function extractDataFromSource(filename)
 
                                 -- lalala can't hear
                                 -- you lalala
-                                os.exit()
+                                os.exit(1)
 
                             end
 
@@ -431,7 +431,7 @@ local function extractDataFromSource(filename)
                                 fileHandler:close()
 
                                 -- I like ice cream
-                                os.exit()
+                                os.exit(1)
 
                             end
 
@@ -451,7 +451,7 @@ local function extractDataFromSource(filename)
 
                                 -- can't read ma, can't read ma,
                                 -- no you can't read ma poker face!
-                                os.exit()
+                                os.exit(1)
 
                             end
 
@@ -503,7 +503,7 @@ local function extractDataFromSource(filename)
 
                             -- walking in a winter
                             -- wonderland
-                            os.exit()
+                            os.exit(1)
 
                         end
 
@@ -537,7 +537,7 @@ local function extractDataFromSource(filename)
     
                         -- the more I see,
                         -- the less I know
-                        os.exit()
+                        os.exit(1)
                     
                     end
                     
@@ -568,7 +568,7 @@ local function extractDataFromSource(filename)
 
             -- I wanted to be
             -- a lumberjack!
-            os.exit()
+            os.exit(1)
         
         end
 
@@ -602,7 +602,7 @@ local function extractDataFromSource(filename)
                 print(":: of your tests. Please make sure the test spec has all the")
 
                 -- pew, pew, pew!
-                os.exit()
+                os.exit(1)
 
             end
 
@@ -616,7 +616,7 @@ local function extractDataFromSource(filename)
                 print(":: and their corresponding values. Stopping execution.")
 
                 -- set fire to the rain!
-                os.exit()
+                os.exit(1)
 
             end
 
@@ -630,7 +630,7 @@ local function extractDataFromSource(filename)
 
                 -- to exit or not to exit,
                 -- that's the question
-                os.exit()
+                os.exit(1)
 
             -- new id, let's add it to the list of
             -- test id's
@@ -650,7 +650,7 @@ local function extractDataFromSource(filename)
         print(":: Stopping execution.")
 
         -- BOOM headshot!
-        os.exit()
+        os.exit(1)
     end
 
 end
@@ -754,7 +754,7 @@ local function extractDataFromLog(filename)
                     fileHandler:close()
                     
                     -- Luke, use the source
-                    os.exit()
+                    os.exit(1)
                 
                 end
                 
@@ -771,7 +771,7 @@ local function extractDataFromLog(filename)
                     fileHandler:close()
                 
                     -- meow!
-                    os.exit()
+                    os.exit(1)
             
                 -- it's a new name, add
                 -- the value to the table
@@ -808,7 +808,7 @@ local function extractDataFromLog(filename)
                     fileHandler:close()
                     
                     -- Luke, use the source
-                    os.exit()
+                    os.exit(1)
                 
                 end
                 
@@ -828,7 +828,7 @@ local function extractDataFromLog(filename)
                     -- The Final Countdown song
                     -- is now playing inside
                     -- your head
-                    os.exit()
+                    os.exit(1)
                 
                 end
                 
@@ -874,7 +874,212 @@ local function extractDataFromLog(filename)
 
         -- 99 bottles of beer
         -- in the wall...
-        os.exit()
+        os.exit(1)
+    end
+
+end
+
+--- Parses the command line arguments.
+-- This function parses the command line arguments according to the
+-- flags defined in the specification.
+-- @param arguments The command line arguments.
+-- @return A string containing the action to be performed.
+-- @return The filename to be analyzed.
+-- @return A table containing the test ID's, if any.
+-- @return A table containing the authors, if any.
+-- @return A table containing the groups, if any.
+local function parseCommandLine(arguments)
+
+    -- let's define all flags and actions that
+    -- our program will support
+    local flags = { "--help" , "--version" }
+    local modifiers = { "--id", "--author", "--group" }
+    local actions = { "test" , "list" }
+    
+    -- get the number of arguments
+    -- passed to the program
+    local n = #arguments
+    
+    -- if there are none
+    if n == 0 then
+    
+        -- print program usage, there's no need
+        -- to exit here, since this call is inside
+        -- a conditional block
+        -- TODO print usage here
+    
+    -- first check, we have exactly one
+    -- argument, let's expect one of the
+    -- flags here
+    elseif n == 1 then
+    
+        -- if the argument is not in
+        -- the table of flags
+        if not contains(arguments[1], flags) then
+            
+            -- invalid flag, simply
+            -- print usage
+            -- TODO print usage here
+        
+        -- we have either 'help' or 'version',
+        -- let's check which one to display
+        else
+        
+            if arguments[1] == "help" then
+            
+                -- print help
+                -- TODO print help here
+            
+            -- we have 'version'
+            else
+            
+                -- print version info
+                -- TODO print version info here
+            
+            end
+            
+        end
+        
+    -- we have now at least two arguments,
+    -- the tricky part begins
+    else
+    
+        -- the first argument must be an action,
+        -- check if it's in the actions table
+        if not contains(arguments[1], actions) then
+        
+            -- an action was expected, raise error
+            -- TODO add message error about expecting an action
+            
+            -- boat race!
+            os.exit(1)
+            
+        -- the second argument must not start with a dash,
+        -- that is, it cannot be a flag
+        elseif string.sub(arguments[2], 1, 1) == "-" then
+            
+            -- an invalid filename was found,
+            -- raise error
+            -- TODO add message error about an invalid filename
+
+            -- Rule, Britannia!
+            -- Britannia, rule the waves! 
+            os.exit(1)
+            
+        end
+        
+        -- if the execution reaches this part,
+        -- everything fine so far
+        
+        -- get both action and filename
+        local action = arguments[1]
+        local filename = arguments[2]
+        
+        -- now, let's remove them from
+        -- the table of arguments, so
+        -- we can easy handle them
+        table.remove(arguments, 1)
+        table.remove(arguments, 1)
+        
+        -- all the tables to be returned,
+        -- initially empty
+        local authors = {}
+        local groups = {}
+        local ids = {}
+        
+        -- flag that holds the currently
+        -- analyzed flag
+        local currentFlag = nil
+
+        -- iterating the elements in
+        -- the table of arguments
+        for index, value in ipairs(arguments) do
+        
+            -- if the current element is
+            -- a potential flag
+            if string.sub(value, 1, 1) == "-" then
+            
+                -- we now expect a valid modifier, that is,
+                -- flags that expect a value, let's see if
+                -- it's invalid
+                if not contains(value, modifiers) then
+                    
+                    -- we have an invalid flag,
+                    -- so raise error and exit
+                    -- TODO add error message about invalid modifier flag
+                    
+                    -- You shall not pass!
+                    os.exit(1)
+                    
+                -- valid flag, proceed
+                else
+                
+                    -- get the reference and
+                    -- store in the current flag
+                    currentFlag = value
+                end
+                
+                -- sanity check, a flag cannot be last
+                -- argument in the command line
+                if index == #arguments then
+                
+                    -- print message
+                    -- TODO add error message about flag being the last argument
+                    
+                    -- please come back!
+                    os.exit(1)
+                    
+                end
+                
+            -- we have a value instead
+            -- of a flag
+            else
+            
+                -- if the current flag is null,
+                -- it means the value is in the
+                -- wrong order in the arguments
+                -- list 
+                if currentFlag == nil then
+                
+                    -- print message
+                    -- TODO add error message about the wrong value order 
+                    
+                    -- this way to the zoo!
+                    os.exit(1)
+                
+                end
+                
+                -- let's now add the values to their
+                -- corresponding tables
+                
+                -- if the current flag is an ID
+                if currentFlag == "--id" then
+                
+                    -- add the value to the table
+                    table.insert(ids, value)
+                    
+                -- it's an author
+                elseif currentFlag == "--author" then
+                
+                    -- add the value to the table
+                    table.insert(authors, value)
+                    
+                -- when nothing else is left,
+                -- we have a group
+                else
+                
+                    -- add the value to the table
+                    table.insert(groups, value)
+                    
+                end
+                
+            end
+            
+        end
+        
+        -- string, string, table, table, table
+        return action, filename, ids, authors, groups
+        
     end
 
 end
