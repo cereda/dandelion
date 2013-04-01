@@ -98,18 +98,18 @@ end
 --- Checks if the element is in the provided table.
 -- This function checks if the element is in the
 -- provided table, return a boolean value accordingly.
--- @param a The element to be checked.
--- @param t The table.
--- @return boolean value indicating if the element
+-- @param value The element to be checked.
+-- @param set The table.
+-- @return Boolean value indicating if the element
 --         is present.
-local function contains(a, t)
+local function contains(value, set)
 
     -- for every element in the table
-    for _, element in ipairs(t) do
+    for _, element in ipairs(set) do
 
         -- the element exists,
         -- return true
-        if a == element then
+        if value == element then
             return true
         end
     end
@@ -1203,6 +1203,139 @@ local function generateReferenceLog(filename, content)
     
 end
 
+--- Appends a character to a text according to an integer value. 
+-- This function appends a character to a text according to an integer value,
+-- or truncates the text if the length is lower than the value itself.
+-- @param text The provided text.
+-- @param character The character to be repeated.
+-- @param number An integer value representing the number of times to repeat
+--               the provided character.
+-- @param reverse A boolean value indicating if the character will be prepended
+--                to the text instead of appended.
+local function repeatCharacter(text, character, number, reverse)
+
+    -- check if the text is bigger than
+    -- the number itself
+    if string.len(text) > number then
+    
+        -- truncate the text
+        text = string.sub(text,1,number)
+    
+    end
+    
+    -- while length is lower
+    -- than the number, add
+    -- the character
+    while string.len(text) < number do
+    
+        -- if we are in
+        -- reverse mode
+        if reverse then
+        
+            -- prepend
+            text = character .. text
+            
+        -- normal mode
+        else
+        
+            -- append
+            text = text .. character
+            
+        end
+    
+    end
+    
+    -- return the new text
+    return text
+
+end
+
+--- Generates a textual counter.
+-- This function generates a textual counter based on the current position
+-- and the total.
+-- @param part The current position.
+-- @param total The total.
+-- @param open The character to be prepended to the counter.
+-- @param close The character to be appended to the counter.
+local function generateCounter(part, total, open, close)
+
+    -- convert integer values
+    -- to their string counterparts
+    local p = tostring(part)
+    local t = tostring(total)
+    
+    -- add spaces to the left
+    p = repeatCharacter(p, " ", string.len(t), true)
+    
+    -- format the counter
+    p = open .. p .. "/" .. t .. close
+    
+    -- return it
+    return p
+
+end
+
+--- Calculates the Levenshtein distance between two strings.
+-- This function calculates the Levenshtein distance between two strings.
+-- @param a The first string.
+-- @param b The second string.
+-- @return An integer value indicating the Levenshtein distance.
+local function getLevenshteinDistance(a, b)
+
+    -- get the size of
+    -- both strings
+    local lenA = #a
+    local lenB = #b
+    
+    -- create two tables for storing
+    -- each character of each string,
+    -- and an additional table for
+    -- values
+    local charA = {}
+    local charB = {}
+    local distance = {}
+    
+    -- add every character from the
+    -- first string to the table
+    a:gsub('.', function (c)
+        table.insert(charA, c)
+    end)
+    
+    -- add every character from the
+    -- second string to the table
+    b:gsub('.', function (c)
+        table.insert(charB, c)
+    end)
+    
+    -- create a matrix to store
+    -- the values from the
+    -- calculation
+    for i = 0, lenA do
+        distance[i] = {}
+    end
+    
+    for i = 0, lenA do
+        distance[i][0] = i
+    end
+    
+    for i = 0, lenB do
+        distance[0][i] = i
+    end
+    
+    -- calculate each cell of
+    -- the matrix    
+    for i = 1, lenA do
+        for j = 1, lenB do
+            distance[i][j] = math.min(distance[i-1][j  ] + 1, distance[i  ][j-1] + 1,
+            distance[i-1][j-1] + (charA[i] == charB[j] and 0 or 1))
+        end
+    end
+    
+    -- return the specific position
+    -- which holds the result
+    return distance[lenA][lenB]
+end
+
 --- Generates the test report.
 -- This function generates the test report based on the source code and
 -- the log file.
@@ -1211,7 +1344,9 @@ end
 -- @param groups The command line list of groups, if any.
 -- @param fromSource The mapping table from the source code.
 -- @param fromLog The mapping table from the log file.
-local function generateReport(ids, authors, groups, fromSource, fromLog)
+-- @param sourceName The name of the source file.
+-- @param logName The name of the log file.
+local function generateReport(ids, authors, groups, fromSource, fromLog, sourceName, logName)
     
     -- let's get all information from
     -- the source code for the later
@@ -1319,6 +1454,13 @@ local function generateReport(ids, authors, groups, fromSource, fromLog)
             -- table entry 
             v["output"] = output
             
+            -- calculate the Levenshtein distance
+            -- using the values from the expected
+            -- and obtained results, and add the
+            -- integer value to the current table
+            -- entry
+            v["levenshtein"] = getLevenshteinDistance(v["expects"], output)
+            
             -- insert the result into
             -- the new selection
             table.insert(selection, v)
@@ -1337,9 +1479,152 @@ local function generateReport(ids, authors, groups, fromSource, fromLog)
         os.exit(1)
         
     end
+    
+    -- variables to store the
+    -- tests according to the
+    -- results
+    local testsPassed = {}
+    local testsFailed = {}
+    
+    -- store the maximum value found
+    -- for the Levenshtein distance
+    local maximum = 0
+    
+    -- let's analyze our selection
+    for i, v in ipairs(selection) do
+    
+        -- if the Levenshtein distance is
+        -- equals to zero, it means the two
+        -- strings are equal, so the test
+        -- passed!
+        if v["levenshtein"] == 0 then
+        
+            -- add the current test to
+            -- the success table!
+            table.insert(testsPassed, v)
+            
+        -- a value greater than zero,
+        -- the test failed
+        else
+        
+            -- check if the maximum value
+            -- is lower than the current
+            -- Levenshtein distance
+            if maximum < v["levenshtein"] then
+                
+                -- update the value
+                maximum = v["levenshtein"]
+                
+            end
+            
+            -- add the current test to the
+            -- failure table!
+            table.insert(testsFailed, v)
+        
+        end
+        
+    end
+    
+    -- print info about the files
+    print(repeatCharacter("TeX file ", ".", 15, false) .. " " .. sourceName)
+    print(repeatCharacter("Log file ", ".", 15, false) .. " " .. logName .. "\n")
+    
+    -- print header
+    print("########## Test Execution Report ##########\n")
+    
+    -- counters
+    local counter = 0
+    local total = #selection
+    
+    -- temporary variable
+    -- to create the entry
+    local entry
+    
+    -- message for well succeeded tests
+    print("The following tests passed:\n")
+    
+    -- if no tests succeeded
+    if #testsPassed == 0 then
+    
+        -- print message
+        print("- I'm afraid to tell you none of your tests passed.")
+        
+    -- we have tests that succeeded!
+    else
+            
+        -- let's print them!
+        for _, v in ipairs(testsPassed) do
+        
+            -- increment counter
+            counter = counter + 1
+            
+            -- generate the report entry
+            entry = "- " .. generateCounter(counter, total, "[", "]") .. " "
+            entry = entry .. repeatCharacter(v["group"] .. ":" .. v["id"] .. " ", ".", 30, false)
+            entry = entry .. " [ PASSED ] (LD " .. repeatCharacter(tostring(0), " ", #tostring(maximum), true)
+            entry = entry .. ", S " .. string.format("%5.1f", 100) .. "%)"
+            
+            -- and print it
+            print(entry)
+        
+        end
+    
+    end
+    
+    -- message for failed tests
+    print("\nThe following tests failed:\n")
+    
+    -- if no tests failed
+    if #testsFailed == 0 then
+    
+        -- print message
+        print("- Congratulations, none of your tests failed!")
+        
+    -- oh no, we have tests
+    -- that failed!
+    else
+            
+        -- let's print them!
+        for _, v in ipairs(testsFailed) do
+        
+            -- increment counter
+            counter = counter + 1
 
-    -- TODO print the report
-
+            -- a temporary
+            -- variable
+            local denominator
+            
+            -- get the value of the
+            -- greater length
+            if #v["expects"] > #v["output"] then
+                denominator = #v["expects"]             
+            else            
+                denominator = #v["output"]              
+            end
+            
+            -- let's calculate the similarity
+            local similarity = v["levenshtein"] / denominator
+            
+            -- generate the report entry
+            entry = "- " .. generateCounter(counter, total, "[", "]") .. " "
+            entry = entry .. repeatCharacter(v["group"] .. ":" .. v["id"] .. " ", ".", 30, false)
+            entry = entry .. " [ FAILED ] (LD " .. repeatCharacter(tostring(v["levenshtein"]), " ", #tostring(maximum), true)
+            entry = entry .. ", S " .. string.format("%5.1f", similarity) .. "%)"
+            
+            -- and print it
+            print(entry)
+        
+        end
+    
+    end
+    
+    -- calculations
+    local passed = string.format("%0.1f", ((#testsPassed / total) * 100))
+    local failed = string.format("%0.1f", ((#testsFailed / total) * 100))
+    
+    -- summary
+    print("\n:: " .. passed .. "% passed, " .. failed .. "% failed.")
+    
 end
 
 --- Wraps the main code into a block.
@@ -1350,13 +1635,6 @@ local function main()
     -- first of all, draw
     -- the program logo
     drawLogo()
-
-    -- HIC SUNT DRACONES
-    -- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
-    -- _, x = extractDataFromSource("/home/paulo/Documentos/test.tex")
-    -- y = extractDataFromLog("/home/paulo/Documentos/test.log")
-    -- generateReport({}, {}, {}, x, y)
-    -- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 end
 
