@@ -1933,6 +1933,10 @@ local function main()
         -- situation here
         else
         
+        	-- check for a valid query before running
+        	-- the TeX engine
+        	_ = performQuery(ids, authors, groups, fromSource, nil, false)
+        
             -- print engine info
             print("Running '" .. engine .. "' on '" .. filename .. "', please wait.\n")
         
