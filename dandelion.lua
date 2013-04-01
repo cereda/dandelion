@@ -1933,9 +1933,15 @@ local function main()
         -- situation here
         else
         
+            -- print engine info
+            print("Running '" .. engine .. "' on '" .. filename .. "', please wait.\n")
+        
             -- let's run engine and
             -- hope for the best
             runEngine(engine, filename)
+            
+            -- print engine status
+            print("\nEngine was successfully executed.\n")           
             
             -- get the log name based on the
             -- original source code file and
