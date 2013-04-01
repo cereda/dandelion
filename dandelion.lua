@@ -32,6 +32,16 @@ local dandelionRegisters = { "box",
     "muskip",
     "skip",
     "toks" }
+    
+-- variable to hold the valid engines
+local dandelionEngines = { "tex",
+    "pdftex",
+    "xetex",
+    "luatex",
+    "latex",
+    "pdflatex",
+    "xelatex",
+    "lualatex" }
 
 --- Draws the application logo in the terminal.
 -- This function simply draws an ASCII logo in the terminal.
@@ -1347,18 +1357,18 @@ local function getLevenshteinDistance(a, b)
     return distance[lenA][lenB]
 end
 
---- Generates the test report.
--- This function generates the test report based on the source code and
--- the log file.
+--- Gets the command line values and selects which tests will be displayed.
+-- This function gets all the command line values and filters all tests
+-- according to their values.
 -- @param ids The command line list of IDs, if any.
 -- @param authors The command line list of authors, if any.
 -- @param groups The command line list of groups, if any.
 -- @param fromSource The mapping table from the source code.
 -- @param fromLog The mapping table from the log file.
--- @param sourceName The name of the source file.
--- @param logName The name of the log file.
-local function generateReport(ids, authors, groups, fromSource, fromLog, sourceName, logName)
-    
+-- @param analyzeLog A boolean value indicating if the log file should be
+--                   analyzed during the process.
+local function performQuery(ids, authors, groups, fromSource, fromLog, analyzeLog)
+
     -- let's get all information from
     -- the source code for the later
     -- query
@@ -1381,24 +1391,30 @@ local function generateReport(ids, authors, groups, fromSource, fromLog, sourceN
         
     end
     
-    -- get all test ID's from
-    -- the log file and add them
-    -- to the temporary table
-    for i, _ in pairs(fromLog) do
-        table.insert(idsFromLog, i)
-    end
+    -- if we need to analyze
+    -- the log
+    if analyzeLog then
     
-    -- if their size don't match, we
-    -- might have conflicting codes
-    if #difference(idsFromSource, idsFromLog) ~= 0 or
-        #difference(idsFromLog, idsFromSource) ~= 0 then
+        -- get all test ID's from
+        -- the log file and add them
+        -- to the temporary table
+        for i, _ in pairs(fromLog) do
+            table.insert(idsFromLog, i)
+        end
+        
+        -- if their size don't match, we
+        -- might have conflicting codes
+        if #difference(idsFromSource, idsFromLog) ~= 0 or
+            #difference(idsFromLog, idsFromSource) ~= 0 then
+        
+            -- TODO add error message that both source and log tests differ
     
-        -- TODO add error message that both source and log tests differ
-
-        -- One more time, but
-        -- with feeling
-        os.exit(1)
-    
+            -- One more time, but
+            -- with feeling
+            os.exit(1)
+        
+        end
+        
     end
     
     -- let's check if there are invalid
@@ -1457,20 +1473,27 @@ local function generateReport(ids, authors, groups, fromSource, fromLog, sourceN
             (disableAuthors or contains(v["author"], authors)) and
             (disableGroups or contains(v["group"], groups))  then
             
-            -- get the output from
-            -- the log table
-            local output = fromLog[v["id"]]
+            -- if we are analyzing the log,
+            -- calculate the Levenshtein
+            -- distance
+            if analyzeLog then
             
-            -- append it to the current
-            -- table entry 
-            v["output"] = output
-            
-            -- calculate the Levenshtein distance
-            -- using the values from the expected
-            -- and obtained results, and add the
-            -- integer value to the current table
-            -- entry
-            v["levenshtein"] = getLevenshteinDistance(v["expects"], output)
+                -- get the output from
+                -- the log table
+                local output = fromLog[v["id"]]
+                
+                -- append it to the current
+                -- table entry 
+                v["output"] = output
+                
+                -- calculate the Levenshtein distance
+                -- using the values from the expected
+                -- and obtained results, and add the
+                -- integer value to the current table
+                -- entry
+                v["levenshtein"] = getLevenshteinDistance(v["expects"], output)
+                
+            end
             
             -- insert the result into
             -- the new selection
@@ -1479,6 +1502,64 @@ local function generateReport(ids, authors, groups, fromSource, fromLog, sourceN
         end
     
     end
+    
+    -- return the selected tests
+    return selection
+
+end
+
+--- Runs the TeX engine on the provided source file.
+-- This function makes a call to the underlying operating system, running
+-- the specified TeX engine on the provided source file.
+-- @param engine The TeX engine.
+-- @param filename The source filename.
+local function runEngine(engine, filename)
+
+    -- let's check if the engine
+    -- is invalid
+    if not contains(engine, dandelionEngines) then
+    
+        -- TODO add error message about an invalid engine
+        
+        -- I'll see you on the
+        -- dark side of the moon
+        os.exit(1)
+    
+    end
+    
+    -- execute the call and get
+    -- the exit code
+    local code = os.execute(engine .. " " .. filename)
+    
+    -- if the exit code is different
+    -- of zero, something wrong
+    -- happened
+    if code ~= 0 then
+    
+        -- TODO add error message about an error exit code
+        
+        -- tada!
+        os.exit(1)
+    
+    end
+
+end
+
+--- Generates the test report.
+-- This function generates the test report based on the source code and
+-- the log file.
+-- @param ids The command line list of IDs, if any.
+-- @param authors The command line list of authors, if any.
+-- @param groups The command line list of groups, if any.
+-- @param fromSource The mapping table from the source code.
+-- @param fromLog The mapping table from the log file.
+-- @param sourceName The name of the source file.
+-- @param logName The name of the log file.
+local function generateReport(ids, authors, groups, fromSource, fromLog, sourceName, logName)
+    
+    -- let's perform the query and
+    -- get the selected testes
+    local selection = performQuery(ids, authors, groups, fromSource, fromLog, true)
     
     -- our query didn't fetch
     -- any test at all
@@ -1638,6 +1719,75 @@ local function generateReport(ids, authors, groups, fromSource, fromLog, sourceN
     
 end
 
+--- Truncates the text to the provided number value.
+-- This function truncates the text to the provided number value, or simply
+-- returns the text if the length of the text is lower than the provided
+-- value.
+-- @param text The text to be truncated.
+-- @param number The number of characters.
+-- @return The truncated text, or the text itself if its length is lower
+--         than the provided value.
+local function truncateText(text, number)
+
+    -- if the length is greater
+    -- than the provided number,
+    -- truncate text
+    if #text > number then
+        text = string.sub(text, 1, number) .. "..."
+    end
+    
+    -- simply return the text
+    return text
+
+end
+
+--- Lists all tests found in the source code file.
+-- This function lists all tests found in the source code file, eventually
+-- applying the filter according to the command line arguments.
+-- @param ids The command line list of IDs, if any.
+-- @param authors The command line list of authors, if any.
+-- @param groups The command line list of groups, if any.
+-- @param fromSource The mapping table from the source code.
+-- @param sourceName The source filename.
+local function listTests(ids, authors, groups, fromSource, sourceName)
+    
+    -- let's perform the query and
+    -- get the selected testes
+    local selection = performQuery(ids, authors, groups, fromSource, nil, false)
+    
+    -- our query didn't fetch
+    -- any test at all
+    if #selection == 0 then
+    
+        -- TODO add error message that the query returned an empty value
+        
+        -- royale with cheese
+        os.exit(1)
+        
+    end
+    
+    -- print info about the file
+    print(repeatCharacter("TeX file ", ".", 15, false) .. " " .. sourceName .. "\n")
+    
+    -- print header
+    print("########## Test List Report ##########\n")
+    
+    -- let's analyze our selection
+    for i, v in ipairs(selection) do
+    
+        -- print info
+        print(repeatCharacter("ID ", ".", 15, false) .. " " .. v["id"])
+        print(repeatCharacter("Name ", ".", 15, false) .. " " .. v["name"])
+        print(repeatCharacter("Author ", ".", 15, false) .. " " .. v["author"])
+        print(repeatCharacter("Group ", ".", 15, false) .. " " .. v["group"])
+        print(repeatCharacter("Description ", ".", 15, false) .. " " .. truncateText(v["description"], 50) .. "\n")
+    
+    end
+    
+    print("Found " .. #selection .. " tests.")
+    
+end
+
 --- Wraps the main code into a block.
 -- This function acts like the main function of the program,
 -- wrapping the main code into a block.
@@ -1646,7 +1796,7 @@ local function main()
     -- first of all, draw
     -- the program logo
     drawLogo()
-
+    
 end
 
 -- call the main
