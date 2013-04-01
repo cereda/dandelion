@@ -907,10 +907,11 @@ local function parseCommandLine(arguments)
     -- if there are none
     if n == 0 then
     
-        -- print program usage, there's no need
-        -- to exit here, since this call is inside
-        -- a conditional block
+        -- print program usage
         -- TODO print usage here
+        
+        -- nananananananana Batman!
+        os.exit(0)
     
     -- first check, we have exactly one
     -- argument, let's expect one of the
@@ -924,6 +925,9 @@ local function parseCommandLine(arguments)
             -- invalid flag, simply
             -- print usage
             -- TODO print usage here
+            
+            -- There's no spoon
+            os.exit(1)
         
         -- we have either 'help' or 'version',
         -- let's check which one to display
@@ -933,12 +937,19 @@ local function parseCommandLine(arguments)
             
                 -- print help
                 -- TODO print help here
+                
+                -- open your heart,
+                -- I'm coming home!
+                os.exit(0)
             
             -- we have 'version'
             else
             
                 -- print version info
                 -- TODO print version info here
+                
+                -- Ouch, that hurts
+                os.exit(0)
             
             end
             
