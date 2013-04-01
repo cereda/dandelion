@@ -18,7 +18,7 @@
 
 -- variables that holds the current
 -- program version and date
-local dandelionInfo = { "1.0.2", "April 1st, 2013" }
+local dandelionInfo = { "1.0.3", "April 1st, 2013" }
 
 -- variable that holds the name of all valid elements
 local dandelionElements = { "id",
