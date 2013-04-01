@@ -16,6 +16,10 @@
 -- The released version of this bundle is available from CTAN.
 -- ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+-- variables that holds the current
+-- program version and date
+local dandelionInfo = { "1.0", "April 1st, 2013" }
+
 -- variable that holds the name of all valid elements
 local dandelionElements = { "id",
     "name",
@@ -893,6 +897,52 @@ local function extractDataFromLog(filename)
 
 end
 
+--- Prints the usage message.
+-- This function prints the usage message.
+local function printUsage()
+
+    -- print message
+    print("Usage: dandelion [ <action> <filename> [ <modifiers> ]")
+    print("                                | --help | --version ]\n")
+    print("<action>     three options are available:")
+    print("               test : run tests on the provided file")
+    print("               list : list available tests")
+    print("               save : save the log to a reference file\n")
+    print("<filename>   the file to be analyzed\n")
+    print("--help       displays this message\n")
+    print("--version    displays the program version\n")
+    print("<modifiers>  these flags can be used multiple times:")
+    print("              --id <value> : filter by test ID")
+    print("              --author <value> : filter by test author")
+    print("              --group <value> : filter by test group")
+    
+end
+
+--- Prints the program version.
+-- This function prints the program version, together with an ASCII lion.
+local function printVersion()
+
+    -- draw lion
+    print("             ,%%%%%%%%,")
+    print("           ,%%/\\%%%%/\\%%")
+    print("          ,%%%\\c \"\" J/%%%")
+    print(" %.       %%%%/ o  o \\%%%")
+    print(" `%%.     %%%%    _  |%%%")
+    print("  `%%     `%%%%(__Y__)%%'")
+    print("  //       ;%%%%`\\-/%%%'")
+    print(" ((       /  `%%%%%%%'")
+    print("  \\\\    .'          |")
+    print("   \\\\  /       \\  | |")
+    print("    \\\\/         ) | |")
+    print("     \\         /_ | |__")
+    print("     (___________)))))))")
+
+    -- print message
+    print("\nThe current version of dandelion is " .. dandelionInfo[1] .. ",")
+    print("dated from " .. dandelionInfo[2] .. ".")
+    
+end
+
 --- Parses the command line arguments.
 -- This function parses the command line arguments according to the
 -- flags defined in the specification.
@@ -918,7 +968,7 @@ local function parseCommandLine(arguments)
     if n == 0 then
     
         -- print program usage
-        -- TODO print usage here
+        printUsage()
         
         -- nananananananana Batman!
         os.exit(0)
@@ -932,9 +982,13 @@ local function parseCommandLine(arguments)
         -- the table of flags
         if not contains(arguments[1], flags) then
             
+             -- inform user about the error
+             print(":: I'm sorry, but the provided argument doesn't seem")
+             print(":: to be a valid flag. Please, check the usage.\n")
+            
             -- invalid flag, simply
             -- print usage
-            -- TODO print usage here
+            printUsage()
             
             -- There's no spoon
             os.exit(1)
@@ -946,7 +1000,7 @@ local function parseCommandLine(arguments)
             if arguments[1] == "help" then
             
                 -- print help
-                -- TODO print help here
+                printUsage()
                 
                 -- open your heart,
                 -- I'm coming home!
@@ -956,7 +1010,7 @@ local function parseCommandLine(arguments)
             else
             
                 -- print version info
-                -- TODO print version info here
+                printVersion()
                 
                 -- Ouch, that hurts
                 os.exit(0)
@@ -974,7 +1028,11 @@ local function parseCommandLine(arguments)
         if not contains(arguments[1], actions) then
         
             -- an action was expected, raise error
-            -- TODO add message error about expecting an action
+             print(":: I'm sorry, but the provided argument doesn't seem")
+             print(":: to be a valid action. Please, check the usage.\n")
+             
+             -- print usage
+             printUsage()
             
             -- boat race!
             os.exit(1)
@@ -985,7 +1043,12 @@ local function parseCommandLine(arguments)
             
             -- an invalid filename was found,
             -- raise error
-            -- TODO add message error about an invalid filename
+            -- inform user about the error
+             print(":: I'm sorry, but the provided argument doesn't seem")
+             print(":: to be a valid filename. Please, check the usage.\n")
+            
+            -- print usage
+            printUsage()
 
             -- Rule, Britannia!
             -- Britannia, rule the waves! 
@@ -1031,7 +1094,8 @@ local function parseCommandLine(arguments)
                     
                     -- we have an invalid flag,
                     -- so raise error and exit
-                    -- TODO add error message about invalid modifier flag
+                    print(":: I'm sorry, but the provided argument doesn't seem")
+                    print(":: to be a valid flag. Please, check the usage.\n")
                     
                     -- You shall not pass!
                     os.exit(1)
@@ -1049,7 +1113,11 @@ local function parseCommandLine(arguments)
                 if index == #arguments then
                 
                     -- print message
-                    -- TODO add error message about flag being the last argument
+                    print(":: I'm sorry, but a modifier flag requires at least")
+                    print(":: one argument. Please, check the usage.\n")
+                    
+                    -- print usage
+                    printUsage()                    
                     
                     -- please come back!
                     os.exit(1)
@@ -1067,7 +1135,11 @@ local function parseCommandLine(arguments)
                 if currentFlag == nil then
                 
                     -- print message
-                    -- TODO add error message about the wrong value order 
+                    print(":: I'm sorry, but a modifier argument cannot be")
+                    print(":: defined before the flag. Please, check the usage.\n")
+ 
+                    -- print usage
+                    printUsage()
                     
                     -- this way to the zoo!
                     os.exit(1)
@@ -1208,13 +1280,15 @@ local function generateReferenceLog(filename, content)
     -- close handler
     fileHandler:close()
     
-    -- TODO add success message
+    -- print message
+    print("The new reference log '" .. filename .. "' was generate successfully.")
     
     -- something bad happened
     else
     
         -- print message
-        -- TODO add error message about the reference log generation
+        print(":: I'm sorry, but reference log could not be")
+        print(":: generated. Stopping execution.")
         
         -- do you come from a
         -- land down under?
@@ -1407,8 +1481,11 @@ local function performQuery(ids, authors, groups, fromSource, fromLog, analyzeLo
         if #difference(idsFromSource, idsFromLog) ~= 0 or
             #difference(idsFromLog, idsFromSource) ~= 0 then
         
-            -- TODO add error message that both source and log tests differ
-    
+            -- print message
+            print(":: I'm sorry, but the tests from the log file and")
+            print(":: the tests from the source file differ. I cannot")
+            print(":: proceed. Stopping execution.")
+
             -- One more time, but
             -- with feeling
             os.exit(1)
@@ -1421,7 +1498,10 @@ local function performQuery(ids, authors, groups, fromSource, fromLog, analyzeLo
     -- test ID's from the command line
     if #difference(ids, idsFromSource) ~= 0 then
     
-        -- TODO add error message that there are invalid CLI ID's
+        -- print message
+        print(":: I'm sorry, but the provided test ID appears to be invalid.")
+        print(":: Please check the source code. Stopping execution.")
+        
         
         -- I can't believe it took so
         -- long to fix this
@@ -1433,7 +1513,9 @@ local function performQuery(ids, authors, groups, fromSource, fromLog, analyzeLo
     -- authors from the command line
     if #difference(authors, authorsFromSource) ~= 0 then
     
-        -- TODO add error message that there are invalid CLI authors
+        -- print message
+        print(":: I'm sorry, but the provided test author appears to be invalid.")
+        print(":: Please check the source code. Stopping execution.")
         
         -- FOR REAL!
         os.exit(1)
@@ -1444,7 +1526,9 @@ local function performQuery(ids, authors, groups, fromSource, fromLog, analyzeLo
     -- groups from the command line
     if #difference(groups, groupsFromSource) ~= 0 then
     
-        -- TODO add error message that there are invalid CLI groups
+        -- print message
+        print(":: I'm sorry, but the provided test group appears to be invalid.")
+        print(":: Please check the source code. Stopping execution.")
         
         -- This is why the cat shouldn't
         -- sit on my keyboard
@@ -1519,7 +1603,9 @@ local function runEngine(engine, filename)
     -- is invalid
     if not contains(engine, dandelionEngines) then
     
-        -- TODO add error message about an invalid engine
+        -- print message
+        print(":: I'm sorry, but the provided TeX engine appears to be invalid.")
+        print(":: Please check the source code. Stopping execution.")
         
         -- I'll see you on the
         -- dark side of the moon
@@ -1536,7 +1622,10 @@ local function runEngine(engine, filename)
     -- happened
     if code ~= 0 then
     
-        -- TODO add error message about an error exit code
+        -- print message
+        print(":: I'm sorry, but it seems the TeX engine execution")
+        print(":: ended with errors. Please check the source code.")
+        print(":: Stopping execution.")
         
         -- tada!
         os.exit(1)
@@ -1565,7 +1654,9 @@ local function generateReport(ids, authors, groups, fromSource, fromLog, sourceN
     -- any test at all
     if #selection == 0 then
     
-        -- TODO add error message that the query returned an empty value
+        -- print message
+        print(":: I'm sorry, but the query returned no tests. There's")
+        print(":: nothing I can do, actually. Stopping execution.")
         
         -- lolwut?
         os.exit(1)
@@ -1759,7 +1850,9 @@ local function listTests(ids, authors, groups, fromSource, sourceName)
     -- any test at all
     if #selection == 0 then
     
-        -- TODO add error message that the query returned an empty value
+        -- print message
+        print(":: I'm sorry, but the query returned no tests. There's")
+        print(":: nothing I can do, actually. Stopping execution.")
         
         -- royale with cheese
         os.exit(1)
@@ -1796,9 +1889,84 @@ local function main()
     -- first of all, draw
     -- the program logo
     drawLogo()
+
+    -- variables
+    local action
+    local filename
+    local engine
+    local log
+    
+    -- tables for
+    -- query
+    local ids
+    local authors
+    local groups
+    
+    -- mappings
+    local fromSource
+    local fromLog
+    
+
+    -- parse the command line arguments
+    action, filename, ids, authors, groups = parseCommandLine(arg)
+    
+    -- we the execution reaches this point, we have
+    -- valid parameters
+    
+    -- let's see if we have 'test' or 'list',
+    -- since they share at least one function
+    -- call
+    if action == "test" or action == "list" then
+    
+        -- get both engine and mapping
+        engine, fromSource = extractDataFromSource(filename)
+        
+        -- if it's only list,
+        -- no more calls are
+        -- needed
+        if action == "list" then
+        
+            -- list tests
+            listTests(ids, authors, groups, fromSource, filename)
+        
+        -- we have a real test
+        -- situation here
+        else
+        
+            -- let's run engine and
+            -- hope for the best
+            runEngine(engine, filename)
+            
+            -- get the log name based on the
+            -- original source code file and
+            -- extract its contents
+            log = getBasename(filename) .. ".log"
+            fromLog = extractDataFromLog(log)
+            
+            -- generate report
+            generateReport(ids, authors, groups, fromSource, fromLog, filename, log)
+        
+        end
+        
+    -- we have a save
+    -- action
+    else
+    
+        -- get the log name based on the
+        -- original source code file and
+        -- extract its contents
+        log = getBasename(filename) .. ".log"
+        fromLog = extractDataFromLog(log)
+        
+        -- generate the reference log
+        generateReferenceLog(log, fromLog)
+    
+    end
     
 end
 
 -- call the main
 -- function
 main()
+
+-- that's all, folks!
