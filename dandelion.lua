@@ -1961,6 +1961,8 @@ local function main()
     -- we have a save
     -- action
     else
+
+        -- TODO add note about flags not having effect here
     
         -- get the log name based on the
         -- original source code file and
