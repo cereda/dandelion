@@ -18,7 +18,7 @@
 
 -- variables that holds the current
 -- program version and date
-local dandelionInfo = { "1.0", "April 1st, 2013" }
+local dandelionInfo = { "1.0.2", "April 1st, 2013" }
 
 -- variable that holds the name of all valid elements
 local dandelionElements = { "id",
@@ -69,16 +69,6 @@ end
 -- @return The new trimmed string.
 local function trim(text)
     return (string.gsub(text, "^%s*(.-)%s*$", "%1"))
-end
-
---- Trims leading and trailing newlines.
--- This function removes leading and trailing newline
--- characters from the provided string, using pattern
--- matching.
--- @param text The string to be trimmed.
--- @return The new trimmed string.
-local function trimNewline(text)
-    return (string.gsub(text, "^\n*(.-)\n*$", "%1"))
 end
 
 --- Checks if the table has valid entries.
@@ -187,10 +177,14 @@ local function extractDataFromSource(filename)
         -- lines, according to the context
         local grabber = false
 
-        -- flag to indicate if the current multine parsing
+        -- flag to indicate if the current multiline parsing
         -- is valid, of course, you need to have a single
         -- line argument first
-        local acceptMultine = false
+        local acceptMultiline = false
+
+        -- flag to refer to the first line of
+        -- a multiline parsing
+        local firstLine
 
         -- line counter
         local lineCounter = 1
@@ -280,7 +274,7 @@ local function extractDataFromSource(filename)
                             -- let's see if the scope is valid, that
                             -- is, we need to have a previous line
                             -- with a key
-                            if acceptMultine == false then
+                            if acceptMultiline == false then
 
                                 -- print message
                                 print(":: I'm sorry, but there's an invalid entry at line " .. lineCounter .. ".")
@@ -376,22 +370,29 @@ local function extractDataFromSource(filename)
                             -- we expect to fetch values, so let's
                             -- disable the flag
                             emptyValue = false
+                            
+                            -- if we are not in the first line,
+                            -- add the line ending
+                            if firstLine ~= true then
 
-                            -- let's concatenate the values from the previous
-                            -- lines, since we are in a multiline segment
-                            entry = mapping[key] .. lineEnding .. entry
+                                -- let's concatenate the values from the previous
+                                -- lines, since we are in a multiline segment
+                                entry = mapping[key] .. lineEnding .. entry     
+                            
+                            -- first line,
+                            -- disable flag
+                            else
+                            
+                                -- disable flag
+                                firstLine = false
+                            
+                            end
 
                             -- if docstring, simply trim
                             -- the leading and trailing
                             -- spaces
                             if #type == 1 then
                                 entry = trim(entry)
-
-                            -- we have a codestring, then
-                            -- let's trim the leading and
-                            -- trailing newlines
-                            else
-                                entry = trimNewline(entry)
                             end
 
                             -- add entry to the mappings
@@ -426,10 +427,13 @@ local function extractDataFromSource(filename)
 
                             -- we can now accept subsequent
                             -- multiline entries
-                            acceptMultine = true
+                            acceptMultiline = true
 
                             -- let's get both key and the value
                             key, entry = string.match(entry, '^%s*(%w+)%s*:(.*)$')
+                            
+                            -- possible first line the multiline
+                            firstLine = true
 
                             -- a key is required, so if it doesn't comply
                             -- with the pattern, the value will be nil
@@ -524,7 +528,7 @@ local function extractDataFromSource(filename)
 
                         -- false, false, false
                         grabber = false
-                        acceptMultine = false
+                        acceptMultiline = false
 
                         -- increment mapping index
                         mappingIndex = mappingIndex + 1
@@ -745,6 +749,9 @@ local function extractDataFromLog(filename)
         -- is part of a test output block
         local grabber = false
         
+        -- first line flag
+        local firstLine
+        
         -- read every single line of the provided
         -- file and look for the test patterns
         for currentLine in fileHandler:lines() do
@@ -798,6 +805,10 @@ local function extractDataFromLog(filename)
                 
                 -- enable the flag
                 grabber = true
+                
+                -- enable the first
+                -- line flag
+                firstLine = true
                 
                 -- initialize the entry
                 -- in the results table
@@ -865,8 +876,25 @@ local function extractDataFromLog(filename)
                 -- remove register references
                 parsedLine = removeRegisterReferences(dandelionRegisters, parsedLine)
                 
-                -- update the output data in the table
-                results[testName] = trimNewline(entry .. "\n" .. parsedLine)
+                -- if we are not in the
+                -- first line
+                if firstLine == false then
+                
+                    -- update the output data in the table,
+                    -- concatenating the value with the
+                    -- line ending
+                    results[testName] = entry .. "\n" .. parsedLine
+                    
+                else
+                
+                    -- simply update the value
+                    results[testName] = parsedLine
+                    
+                    -- disable the flag
+                    firstLine = false
+                    
+                end
+                    
             
             end
                     
@@ -1268,12 +1296,18 @@ local function generateReferenceLog(filename, content)
     
         -- for every entry in the
         -- content table
-        for i, v in pairs(content) do
+        for _, v in ipairs(content) do
         
-            -- write the test output block
-            fileHandler:write("\n===== begin:test:" .. i .. "\n")
-            fileHandler:write(v .. "\n")
-            fileHandler:write("===== end:test:" .. i .. "\n")
+            -- write the test spec
+            fileHandler:write("\n% !test\n")
+            fileHandler:write("% id: " .. v["id"] .. "\n")
+            fileHandler:write("% name: " .. v["name"] .. "\n")
+            fileHandler:write("% author: " .. v["author"] .. "\n")
+            fileHandler:write("% group: " .. v["group"] .. "\n")
+            fileHandler:write("% description:\n")
+            fileHandler:write("%% " .. v["description"] .. "\n")
+            fileHandler:write("% expects:\n")
+            fileHandler:write("%%% " .. string.gsub(v["output"], "\n", "\n%%%%%% ") .. "\n")
             
         end
     
@@ -1613,25 +1647,9 @@ local function runEngine(engine, filename)
     
     end
     
-    -- execute the call and get
-    -- the exit code
-    local code = os.execute(engine .. " " .. filename)
+    -- execute the call
+    _ = os.execute(engine .. " " .. filename)
     
-    -- if the exit code is different
-    -- of zero, something wrong
-    -- happened
-    if code ~= 0 then
-    
-        -- print message
-        print(":: I'm sorry, but it seems the TeX engine execution")
-        print(":: ended with errors. Please check the source code.")
-        print(":: Stopping execution.")
-        
-        -- tada!
-        os.exit(1)
-    
-    end
-
 end
 
 --- Generates the test report.
@@ -1786,7 +1804,7 @@ local function generateReport(ids, authors, groups, fromSource, fromLog, sourceN
             end
             
             -- let's calculate the similarity
-            local similarity = v["levenshtein"] / denominator
+            local similarity = (1 - v["levenshtein"] / denominator) * 100
             
             -- generate the report entry
             entry = "- " .. generateCounter(counter, total, "[", "]") .. " "
@@ -1796,7 +1814,7 @@ local function generateReport(ids, authors, groups, fromSource, fromLog, sourceN
             
             -- and print it
             print(entry)
-        
+                
         end
     
     end
@@ -1962,67 +1980,49 @@ local function main()
     -- action
     else
     
+        -- get both engine and mapping
+        engine, fromSource = extractDataFromSource(filename)
+        
+        -- check for a valid query before running
+        -- the TeX engine
+        _ = performQuery(ids, authors, groups, fromSource, nil, false)
+    
+        -- print engine info
+        print("Running '" .. engine .. "' on '" .. filename .. "', please wait.\n")
+    
+        -- let's run engine and
+        -- hope for the best
+        runEngine(engine, filename)
+        
+        -- print engine status
+        print("\nEngine was successfully executed.\n")           
+        
         -- get the log name based on the
         -- original source code file and
         -- extract its contents
         log = getBasename(filename) .. ".log"
         fromLog = extractDataFromLog(log)
         
-        -- the mapping selection
-        local selection
+        -- let's perform the query and
+        -- get the selected testes
+        local selection = performQuery(ids, authors, groups, fromSource, fromLog, true)
         
-        -- let's see if we have modifiers
-        if #ids ~=0 or #authors ~= 0 or #groups ~= 0 then
+        -- our query didn't fetch
+        -- any test at all
+        if #selection == 0 then
         
-            -- get the mapping from the
-            -- source code and perform
-            -- query to check the modifiers
-            _, fromSource = extractDataFromSource(filename)
-            local mapping = performQuery(ids, authors, groups, fromSource, fromLog, true)
+            -- print message
+            print(":: I'm sorry, but the query returned no tests. There's")
+            print(":: nothing I can do, actually. Stopping execution.")
             
-            -- create a new table
-            selection = {}
-            
-            -- counter
-            local occurrences = 0
-            
-            -- iterate through elements
-            for _, v in pairs(mapping) do
-            
-                -- get the log output
-                selection[v["id"]] = v["output"]
-                
-                -- incremente counter
-                occurrences = occurrences + 1
-                
-            end
-            
-            -- our query didn't fetch
-            -- any test at all
-            if occurrences == 0 then
-        
-                -- print message
-                print(":: I'm sorry, but the query returned no tests. There's")
-                print(":: nothing I can do, actually. Stopping execution.")
-            
-                -- ooooooh!
-                os.exit(1)
-            
-            end 
-            
-        -- no modifiers, act
-        -- as default behaviour
-        else
-        
-            -- simply add the log
-            -- table to the selection
-            selection = fromLog
+            -- more cowbell
+            os.exit(1)
             
         end
         
-        -- generate the reference log
-        generateReferenceLog(log, selection)
-    
+        -- generate reference log
+        generateReferenceLog(filename, selection)
+            
     end
     
 end
