@@ -1961,8 +1961,6 @@ local function main()
     -- we have a save
     -- action
     else
-
-        -- TODO add note about flags not having effect here
     
         -- get the log name based on the
         -- original source code file and
@@ -1970,8 +1968,60 @@ local function main()
         log = getBasename(filename) .. ".log"
         fromLog = extractDataFromLog(log)
         
+        -- the mapping selection
+        local selection
+        
+        -- let's see if we have modifiers
+        if #ids ~=0 or #authors ~= 0 or #groups ~= 0 then
+        
+            -- get the mapping from the
+            -- source code and perform
+            -- query to check the modifiers
+            _, fromSource = extractDataFromSource(filename)
+            local mapping = performQuery(ids, authors, groups, fromSource, fromLog, true)
+            
+            -- create a new table
+            selection = {}
+            
+            -- counter
+            local occurrences = 0
+            
+            -- iterate through elements
+            for _, v in pairs(mapping) do
+            
+                -- get the log output
+                selection[v["id"]] = v["output"]
+                
+                -- incremente counter
+                occurrences = occurrences + 1
+                
+            end
+            
+            -- our query didn't fetch
+            -- any test at all
+            if occurrences == 0 then
+        
+                -- print message
+                print(":: I'm sorry, but the query returned no tests. There's")
+                print(":: nothing I can do, actually. Stopping execution.")
+            
+                -- ooooooh!
+                os.exit(1)
+            
+            end 
+            
+        -- no modifiers, act
+        -- as default behaviour
+        else
+        
+            -- simply add the log
+            -- table to the selection
+            selection = fromLog
+            
+        end
+        
         -- generate the reference log
-        generateReferenceLog(log, fromLog)
+        generateReferenceLog(log, selection)
     
     end
     
