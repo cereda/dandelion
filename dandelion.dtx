@@ -34,16 +34,68 @@
 %% -----------------------------------------------------------------------
 %%
 %
-%<driver>
+%<*driver>
 \documentclass[full]{l3doc}
 \begin{document}
   \DocInput{\jobname.dtx}
 \end{document}
 %</driver>
 %
+% \fi
+% 
+% \title{The \pkg{dandelion} bundle\\A system for testing \LaTeX{} code}
+%
+% \author{^^A
+%  The \LaTeX3 Project\thanks
+%    {^^A
+%      E-mail:
+%        \href{mailto:latex-team@latex-project.org}
+%          {latex-team@latex-project.org}^^A
+%    }^^A
+% }
+%
 % \maketitle
 % 
 % \begin{documentation}
+% 
+% \section{Commands for tests}
+%
+% Unusually for a \LaTeX{} package, all of the commands provided by
+% \pkg{dandelion} have all upper case names. This makes clashes with any
+% \enquote{normal} command names extremely unlikely.
+% 
+% \begin{function}{\TEST}
+%   \begin{syntax}
+%     \cs{TEST}\Arg{id}\Arg{test code}
+%   \end{syntax}
+% \end{function}
+% 
+% \begin{function}{\TESTEXP}
+%   \begin{syntax}
+%     \cs{TESTEXP}\Arg{id}\Arg{test code}
+%   \end{syntax}
+% \end{function}
+% 
+% \begin{function}{\TRUE, \FALSE, \YES, \NO}
+%   \begin{syntax}
+%     \cs{TRUE}
+%     \cs{FALSE}
+%     \cs{YES}
+%     \cs{NO}
+%   \end{syntax}
+% \end{function}
+% 
+% \begin{function}{\ERROR}
+%   \begin{syntax}
+%     \cs{ERROR}
+%   \end{syntax}
+% \end{function}
+% 
+% \begin{function}{\NEWLINE}
+%   \begin{syntax}
+%     \cs{NEWLINE}
+%   \end{syntax}
+% \end{function}
 %
 % \end{documentation}
 % 
@@ -51,9 +103,108 @@
 % 
 % \section{\pkg{dandelion} implementation}
 % 
+% \subsection{\LaTeXe{} package}
+% 
 %    \begin{macrocode}
 %<*package>
 %    \end{macrocode}
+%    
+% Output to the log requires a small number of supporting commands to be
+% loaded in \LaTeX. At present, that means providing a \LaTeXe{} package:
+% we are \enquote{well-behaved} in that sense.
+%    
+%    \begin{macrocode}
+\ProvidesPackage{dandelion}
+  [2013/04/01 v1.0.3 A system for testing LaTeX code]
+%    \end{macrocode}
+% 
+% Scroll as much as possible while still providing terminal output, which can
+% be useful when things go badly wrong.
+%    \begin{macrocode}
+\nonstopmode
+%    \end{macrocode}
+%    
+% \begin{macro}[int]{\TYPEOUT}
+% \begin{macro}{\TYPE}
+%   A long version of \cs{typeout}, because tests may contain \cs{par} tokens.
+%   Besides, with that \cs{TYPE}, we can do
+%   \verb|\TYPE { ... \TRUE ... \NEWLINE ... }|.
+%    \begin{macrocode}
+\newcommand{\TYPEOUT}[1]{%
+  \begingroup
+    \set@display@protect
+    \let\TYPE\@firstofone
+    \immediate\write\@unused{#1}%
+  \endgroup
+}
+\newcommand{\TYPE}{}
+\let\TYPE\TYPEOUT
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% 
+% \begin{macro}{\TEST}
+% \begin{macro}{\TESTEXP}
+% \begin{macro}[aux]{\TESTAUX}
+%   Actually running the tests is reasonable straight-forward. There is a
+%   slight set up difference between expandable and non-expandable tests, as
+%   the former must necessarily write everything to the log. Both funnel down
+%   to a common internal which provides the necessary formatting and also so
+%   sanity checks after the test has run.
+%    \begin{macrocode}
+\newcommand{\TEST}[2]{%
+  \TESTAUX{#1}{%
+    \let\TYPE\TYPEOUT
+    #2%
+  }%
+}
+\newcommand{\TESTEXP}[2]{%
+  \TESTAUX{#1}{%
+    \let\TYPE\@firstofone
+    \TYPEOUT{#2}%
+  }%
+}
+\newcommand{\TESTAUX}[2]{%
+  \typeout{===== begin:test:#1}%
+  \begingroup
+    #2%
+  \endgroup
+  \ifnum\currentgrouplevel>0 %
+    \typeout{Bad grouping: \the\currentgrouplevel!}%
+  \fi
+  \ifnum\currentiflevel>1 %
+    \typeout{Bad conditionals: \the\numexpr\currentiflevel - 1\relax !}%
+  \fi
+  \typeout{===== end:test:#1}%
+}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%    
+% \begin{macro}{\TRUE, \FALSE}
+% \begin{macro}{\YES, \NO}
+%   Simple printing of some useful text to the log.
+%    \begin{macrocode}
+\newcommand*{\TRUE}{\TYPE{TRUE}}
+\newcommand*{\FALSE}{\TYPE{TRUE}}
+\newcommand*{\YES}{\TYPE{YES}}
+\newcommand*{\NO}{\TYPE{NO}}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% 
+% \begin{macro}{\NEWLINE}
+%   Inside expandable tests, forcing a newline makes life a bit easier.
+%    \begin{macrocode}
+\newcommand*{\NEWLINE}{\TYPE{^^J}}
+%    \end{macrocode}
+% \end{macro}
+% 
+% \begin{macro}{\ERROR}
+%   A marker in the implementation for a command that is never defined:
+%   used in various places to indicate an error has occurred.
+% \end{macro}
 %
 %    \begin{macrocode}
 %</package>
