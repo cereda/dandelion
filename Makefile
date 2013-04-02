@@ -38,6 +38,12 @@ TEX       = $(subst ,,$(notdir $(wildcard *.tex)))
 UNPACK    = $(PACKAGE).ins
 
 ##############################################################
+# Details of install files                                   #
+##############################################################
+
+LOCALINSTALL = *.sty *.lua
+
+##############################################################
 # Clean-up information                                       #
 ##############################################################
 
@@ -46,6 +52,8 @@ AUXFILES = \
 	glo  \
 	hd   \
 	idx  \
+	ilg  \
+	ind  \
 	log  \
 	out
 
@@ -85,8 +93,9 @@ CLEAN = \
 ################################################################
 
 .PHONY = \
-	clean  \
-	doc    \
+	clean        \
+	doc          \
+	localinstall \
 	unpack
 
 clean:
@@ -95,6 +104,15 @@ clean:
 	done
 
 doc: unpack $(foreach FILE,$(DTXFILES),$(FILE).pdf)
+
+localinstall: unpack
+	@echo "Installing $(PACKAGE)"
+	@TEXMFHOME=`kpsewhich --var-value=TEXMFHOME` ; \
+	mkdir -p $$TEXMFHOME/tex/$(PACKAGEROOT)/ ; \
+	rm -rf $$TEXMFHOME/tex/$(PACKAGEROOT)/* ; \
+	for I in $(LOCALINSTALL) ; do \
+	  cp "$$I" $$TEXMFHOME/tex/$(PACKAGEROOT)/ ; \
+	done
 
 unpack:
 	@echo "Unpacking files"
