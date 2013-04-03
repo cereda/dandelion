@@ -64,15 +64,25 @@
 % \pkg{dandelion} have all upper case names. This makes clashes with any
 % \enquote{normal} command names extremely unlikely.
 % 
-% \begin{function}{\TEST}
+% \begin{function}{TEST}
 %   \begin{syntax}
-%     \cs{TEST}\Arg{id}\Arg{test code}
+%     \cs{begin}|{TEST}|\Arg{id}
+%     ~~\meta{test code}
+%     \cs{end}|{TEST}|  
 %   \end{syntax}
 % \end{function}
 % 
-% \begin{function}{\TESTEXP}
+% \begin{function}{TEST*}
 %   \begin{syntax}
-%     \cs{TESTEXP}\Arg{id}\Arg{test code}
+%     \cs{begin}|{TEST*}|\Arg{id}
+%     ~~\meta{test code}
+%     \cs{end}|{TEST*}|  
+%   \end{syntax}
+% \end{function}
+% 
+% \begin{function}{\TYPE}
+%   \begin{syntax}
+%     \cs{TYPE}
 %   \end{syntax}
 % \end{function}
 % 
@@ -143,42 +153,58 @@
 % \end{macro}
 % \end{macro}
 % 
-% \begin{macro}{\TEST}
-% \begin{macro}{\TESTEXP}
-% \begin{macro}[aux]{\TESTAUX}
-%   Actually running the tests is reasonable straight-forward. There is a
-%   slight set up difference between expandable and non-expandable tests, as
-%   the former must necessarily write everything to the log. Both funnel down
-%   to a common internal which provides the necessary formatting and also so
-%   sanity checks after the test has run.
+% To allow collection of expandable test material from an environment, the
+% \pkg{environ} package is used. (The same code could be copied here, but this
+% is rather redundant.)
 %    \begin{macrocode}
-\newcommand{\TEST}[2]{%
-  \TESTAUX{#1}{%
-    \let\TYPE\TYPEOUT
-    #2%
-  }%
-}
-\newcommand{\TESTEXP}[2]{%
-  \TESTAUX{#1}{%
-    \let\TYPE\@firstofone
-    \TYPEOUT{#2}%
-  }%
-}
-\newcommand{\TESTAUX}[2]{%
-  \typeout{===== begin:test:#1}%
-  \begingroup
-    #2%
-  \endgroup
-  \ifnum\currentgrouplevel>0 %
+\RequirePackage{environ}
+%    \end{macrocode}
+%    
+% \begin{macro}[int]{\TESTNAME}
+%   Used to store the name of the current test so it is available at the end of
+%   the \texttt{TEST} environment.
+%    \begin{macrocode}
+\newcommand*{\TESTNAME}{}
+%    \end{macrocode}
+% \end{macro}
+% 
+% \begin{macro}[int]{\TESTGROUPLEVEL}
+%   Stores the grouping level expected at the end of a test: will normally be
+%   1 but inside an expandable test needs to be 2.
+%    \begin{macrocode}
+\newcommand*{\TESTGROUPLEVEL}{1}
+%    \end{macrocode}
+% \end{macro}
+% 
+% \begin{macro}{TEST}
+% \begin{macro}{TEST*}
+%   Testing itself takes place in an environment. The standard test set up simply
+%   inserts the code supplied, with \cs{TYPE} equal to \cs{TYPEOUT} so that some
+%   output may be produced. At the end of the test, there is a sanity check for
+%   nested groups and conditional levels: this can be handy to pick up otherwise 
+%   hard-to-spot errors.
+%    \begin{macrocode}
+\newenvironment{TEST}[1]{%
+  \renewcommand*{\TESTNAME}{#1}%
+  \typeout{===== begin:test:\TESTNAME}%
+  \let\TYPE\TYPEOUT
+}{%
+  \ifnum\currentgrouplevel>\TESTGROUPLEVEL\space
     \typeout{Bad grouping: \the\currentgrouplevel!}%
   \fi
   \ifnum\currentiflevel>1 %
     \typeout{Bad conditionals: \the\numexpr\currentiflevel - 1\relax !}%
   \fi
-  \typeout{===== end:test:#1}%
+  \typeout{===== end:test:\TESTNAME}%
+}
+\NewEnviron{TEST*}[1]{%
+  \renewcommand*{\TESTGROUPLEVEL}{2}%
+  \begin{TEST}{#1}%
+    \let\TYPE\@firstofone
+    \TYPEOUT{\BODY}%
+  \end{TEST}%
 }
 %    \end{macrocode}
-% \end{macro}
 % \end{macro}
 % \end{macro}
 %    
