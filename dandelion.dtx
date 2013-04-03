@@ -58,6 +58,44 @@
 % 
 % \begin{documentation}
 % 
+% \section{Overview}
+%
+% The \pkg{dandelion} bundle aims to provide a system for testing \LaTeX{} code
+% so that the outcome of a particular piece of input is well-defined, and so
+% that changes in one place do not lead to unexpected consequences in others.
+% This is done by writing material to the \file{log} file used by \LaTeX{},
+% and comparing the \emph{actual} result to that \emph{expected}. Writing to
+% the log avoids the need to validate the output of \LaTeX{}, which is normally
+% in the form a a \file{dvi} or \textsc{pdf} file. The use of the \file{log}
+% file makes automated testing much easier than would otherwise be the case.
+% 
+% A typical \pkg{dandelion} test file will look much like a normal \LaTeX{}
+% document, by will contain dedicated test environments and meta-data about
+% these tests encoded in comments
+% \begin{verbatim}
+%   \documentclass{article}
+%   \usepackage{dandelion}
+%   \begin{document}
+%   % !test
+%   % id: mytest
+%   % name: My test
+%   % author: me
+%   % group: foo
+%   % description: An example test
+%   % expects:
+%   %%% 1234
+%   \begin{TEST}{mytest}
+%     \TYPE{1234}
+%   \end{TEST}
+%   \end{document}
+% \end{verbatim}
+% 
+% The example above includes only one test: it is possible to include
+% many tests in one file and to run these selectively. The \pkg{dandelion}
+% script will run tests requested and report on the success (or otherwise)
+% of the run. This part of the bundle is described in
+% Section~\ref{sec:script}.
+% 
 % \section{Test environments}
 %
 % \begin{function}{TEST}
@@ -135,6 +173,14 @@
 %   Used to start a new line in the log: useful within expandable tests to keep
 %   the output human-readable.
 % \end{function}
+% 
+% \section{Meta-comments}
+% 
+% To pass information between the \LaTeX{} test file and \pkg{dandelion}
+% script, a number of special-formatted comments are used.
+% 
+% \section{The script}
+% \label{sec:script}
 %
 % \end{documentation}
 % 
