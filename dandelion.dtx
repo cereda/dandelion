@@ -219,10 +219,17 @@
   \let\TYPE\TYPEOUT
 }{%
   \ifnum\currentgrouplevel>\TESTGROUPLEVEL\space
-    \typeout{Bad grouping: \the\currentgrouplevel!}%
+    \typeout{%
+      Bad grouping:
+      \the\numexpr\currentgrouplevel - \TESTGROUPLEVEL - 1\relax
+      \space extra level!%
+    }%
   \fi
   \ifnum\currentiflevel>1 %
-    \typeout{Bad conditionals: \the\numexpr\currentiflevel - 1\relax !}%
+    \typeout{%
+      Bad conditionals: \the\numexpr\currentiflevel - 1\relax
+\space extra level!%
+    }%
   \fi
   \typeout{===== end:test:\TESTNAME}%
 }
