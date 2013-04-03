@@ -58,18 +58,23 @@
 % 
 % \begin{documentation}
 % 
-% \section{Commands for tests}
+% \section{Test environments}
 %
-% Unusually for a \LaTeX{} package, all of the commands provided by
-% \pkg{dandelion} have all upper case names. This makes clashes with any
-% \enquote{normal} command names extremely unlikely.
-% 
 % \begin{function}{TEST}
 %   \begin{syntax}
 %     \cs{begin}|{TEST}|\Arg{id}
 %     ~~\meta{test code}
 %     \cs{end}|{TEST}|  
 %   \end{syntax}
+%   Carries out the test with name \meta{id}, logging the results and
+%   formatting correctly for analysis by the script. Only material which is
+%   written to the log is analysed: this may be for example if \TeX{} is
+%   asked to \cs{show...} something in the terminal, or if \cs{TYPE} is used
+%   to write material to the log deliberately.
+%   
+%   Set up code for tests can be given before the start of a \texttt{TEST}
+%   environment. This can be used for example to avoid parts of the log
+%   being analysed if they may vary between tests.
 % \end{function}
 % 
 % \begin{function}{TEST*}
@@ -78,12 +83,28 @@
 %     ~~\meta{test code}
 %     \cs{end}|{TEST*}|  
 %   \end{syntax}
+%   Carries out the test with name \meta{id}, logging the results and
+%   formatting correctly for analysis by the script. The \meta{test code}
+%   should be fully expandable, and should write to the log file for
+%   analysis. The \cs{TYPE} command may be used to place material into
+%   the log.
+%   
+%   As with the standard \texttt{TEST} environment, code may be given
+%   before the beginning of a \texttt{TEST*} block as set up.
 % \end{function}
+% 
+% \section{Commands for tests}
+%
+% Unusually for a \LaTeX{} package, all of the commands provided by
+% \pkg{dandelion} have all upper case names. This makes clashes with any
+% \enquote{normal} command names extremely unlikely.
 % 
 % \begin{function}{\TYPE}
 %   \begin{syntax}
-%     \cs{TYPE}
+%     \cs{TYPE}\Arg{code}
 %   \end{syntax}
+%   Expands the \meta{code} fully (\cs{edef}/\texttt{x}-type expansion) and
+%   writes the result to the log file for analysis.
 % \end{function}
 % 
 % \begin{function}{\TRUE, \FALSE, \YES, \NO}
@@ -93,18 +114,26 @@
 %     \cs{YES}
 %     \cs{NO}
 %   \end{syntax}
+%   Shortcut commands to write \texttt{TRUE}, \texttt{FALSE}, \texttt{YES}
+%   and \texttt{NO} to the log, respectively. (Equivalent to |\TYPE{TRUE}| and
+%   so on.)
 % \end{function}
 % 
 % \begin{function}{\ERROR}
 %   \begin{syntax}
 %     \cs{ERROR}
 %   \end{syntax}
+%   Used to indicate an error has occurred within a test: this command is never
+%   defined and so will raise an \texttt{Undefined control sequence} error in
+%   the log.
 % \end{function}
 % 
 % \begin{function}{\NEWLINE}
 %   \begin{syntax}
 %     \cs{NEWLINE}
 %   \end{syntax}
+%   Used to start a new line in the log: useful within expandable tests to keep
+%   the output human-readable.
 % \end{function}
 %
 % \end{documentation}
